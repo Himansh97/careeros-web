@@ -1,0 +1,188 @@
+import type { Job } from "@/types/job";
+
+/**
+ * Illustrative mock data only — used to develop/demo the UI while a real
+ * discovery backend doesn't exist yet (see NEXT_PUBLIC_USE_MOCK_DATA in
+ * src/lib/api/jobs.ts). None of this represents real, currently open
+ * postings.
+ */
+export const mockJobs: Job[] = [
+  {
+    id: "job_datadog_de",
+    title: "Data Engineer",
+    company: { id: "datadog", name: "Datadog", industry: "Observability / SaaS" },
+    location: "New York, NY",
+    workArrangement: "hybrid",
+    salary: { min: 130000, max: 175000, period: "year" },
+    source: "Greenhouse",
+    atsPlatform: "Greenhouse",
+    postedAt: daysAgo(0.15),
+    discoveredAt: daysAgo(0.1),
+    description:
+      "Build and own data pipelines powering product analytics at scale. Work across ingestion, transformation, and warehousing with a small, senior team.",
+    rawFitScore: 88,
+    resumeScore: 92,
+    applicationStatus: "qualified",
+    recruiterStatus: "found",
+    strongMatches: ["Python", "SQL", "PySpark", "Data pipelines", "CI/CD"],
+    gaps: ["dbt"],
+    requirements: [
+      { id: "r1", label: "Python", importance: "required", match: "exact", evidence: "Production data pipeline (Python, SQL, PySpark) at Supreme Lending", source: "career_evidence.json" },
+      { id: "r2", label: "SQL", importance: "required", match: "exact", evidence: "SQL-to-Power BI reporting infrastructure at Freyr Solutions", source: "career_evidence.json" },
+      { id: "r3", label: "Data pipeline design", importance: "required", match: "exact", evidence: "ETL pipelines (PySpark, Airflow) processing 1M+ records", source: "career_evidence.json" },
+      { id: "r4", label: "CI/CD", importance: "required", match: "exact", evidence: "Supported deployment through CI/CD practices", source: "career_evidence.json" },
+      { id: "r5", label: "Databricks", importance: "preferred", match: "partial", evidence: "Related PySpark experience, no direct Databricks evidence", source: "career_evidence.json" },
+      { id: "r6", label: "dbt", importance: "preferred", match: "gap" },
+    ],
+    matchBreakdown: { overall: 88, mandatory: 95, technical: 91, experience: 84, domain: 70, education: 100, logistics: 100 },
+    saved: true,
+    applyUrl: "https://boards.greenhouse.io/example/jobs/1",
+  },
+  {
+    id: "job_ramp_analytics_eng",
+    title: "Analytics Engineer",
+    company: { id: "ramp", name: "Ramp", industry: "Fintech" },
+    location: "Remote (US)",
+    workArrangement: "remote",
+    salary: { min: 140000, max: 190000, period: "year" },
+    source: "Lever",
+    atsPlatform: "Lever",
+    postedAt: daysAgo(1.2),
+    discoveredAt: daysAgo(1),
+    description:
+      "Partner with finance and product teams to build the metrics layer. Own dbt models end-to-end from raw data to trusted dashboards.",
+    rawFitScore: 79,
+    resumeScore: undefined,
+    applicationStatus: "discovered",
+    recruiterStatus: "not_searched",
+    strongMatches: ["SQL", "Tableau", "Stakeholder communication"],
+    gaps: ["dbt", "Snowflake"],
+    requirements: [
+      { id: "r1", label: "SQL", importance: "required", match: "exact", evidence: "SQL-to-Power BI reporting infrastructure at Freyr Solutions", source: "career_evidence.json" },
+      { id: "r2", label: "dbt", importance: "required", match: "gap" },
+      { id: "r3", label: "Snowflake", importance: "required", match: "gap" },
+      { id: "r4", label: "Stakeholder communication", importance: "preferred", match: "exact", evidence: "Presented technical findings to executive leadership", source: "career_evidence.json" },
+    ],
+    matchBreakdown: { overall: 79, mandatory: 70, technical: 65, experience: 80, domain: 75, education: 100, logistics: 100 },
+    applyUrl: "https://jobs.lever.co/example/2",
+  },
+  {
+    id: "job_notion_ba",
+    title: "Business Analyst, Operations",
+    company: { id: "notion", name: "Notion", industry: "Productivity SaaS" },
+    location: "New York, NY",
+    workArrangement: "onsite",
+    salary: { min: 110000, max: 145000, period: "year" },
+    source: "Ashby",
+    atsPlatform: "Ashby",
+    postedAt: daysAgo(2.4),
+    discoveredAt: daysAgo(2),
+    description:
+      "Drive requirements gathering and process design across ops. Translate ambiguous problems into clear, measurable workflows.",
+    rawFitScore: 91,
+    resumeScore: 94,
+    applicationStatus: "ready",
+    recruiterStatus: "found",
+    strongMatches: ["Requirements gathering", "Cross-functional coordination", "Process design", "Excel"],
+    gaps: [],
+    requirements: [
+      { id: "r1", label: "Requirements gathering", importance: "required", match: "exact", evidence: "Gathered requirements from accounting stakeholders at Supreme Lending", source: "career_evidence.json" },
+      { id: "r2", label: "Cross-functional coordination", importance: "required", match: "exact", evidence: "Coordinated engagements across 20+ regional markets at Freyr Solutions", source: "career_evidence.json" },
+      { id: "r3", label: "Process design", importance: "required", match: "exact", evidence: "Redesigned workflow to cut timelines by 15%", source: "career_evidence.json" },
+      { id: "r4", label: "Excel", importance: "preferred", match: "exact", evidence: "Excel (VLOOKUP, PivotTables, Macros/VBA)", source: "candidate_master_profile.json" },
+    ],
+    matchBreakdown: { overall: 91, mandatory: 100, technical: 85, experience: 90, domain: 80, education: 100, logistics: 100 },
+    applyUrl: "https://jobs.ashbyhq.com/example/3",
+  },
+  {
+    id: "job_stripe_ai_eng",
+    title: "AI Engineer, Internal Tools",
+    company: { id: "stripe", name: "Stripe", industry: "Fintech Infrastructure" },
+    location: "Remote (US)",
+    workArrangement: "remote",
+    salary: { min: 160000, max: 220000, period: "year" },
+    source: "Greenhouse",
+    atsPlatform: "Greenhouse",
+    postedAt: daysAgo(3.5),
+    discoveredAt: daysAgo(3),
+    description:
+      "Build LLM-powered internal tools for support and risk teams. Deep hands-on work with retrieval, evaluation, and production deployment.",
+    rawFitScore: 58,
+    resumeScore: undefined,
+    applicationStatus: "discovered",
+    recruiterStatus: "not_searched",
+    strongMatches: ["Claude API / LLM application", "Python"],
+    gaps: ["TensorFlow/PyTorch", "Production ML infra at scale"],
+    requirements: [
+      { id: "r1", label: "LLM application development", importance: "required", match: "partial", evidence: "AI-driven data-extraction model using the Claude API at Supreme Lending", source: "career_evidence.json" },
+      { id: "r2", label: "TensorFlow or PyTorch", importance: "required", match: "gap" },
+      { id: "r3", label: "Production ML infrastructure at scale", importance: "required", match: "gap" },
+      { id: "r4", label: "Python", importance: "required", match: "exact", evidence: "Python across multiple pipeline projects", source: "career_evidence.json" },
+    ],
+    matchBreakdown: { overall: 58, mandatory: 45, technical: 40, experience: 55, domain: 60, education: 100, logistics: 100 },
+    applyUrl: "https://boards.greenhouse.io/example/jobs/4",
+  },
+  {
+    id: "job_attio_data_analyst",
+    title: "Data Analyst",
+    company: { id: "attio", name: "Attio", industry: "CRM / SaaS" },
+    location: "Remote (US)",
+    workArrangement: "remote",
+    salary: { min: 95000, max: 125000, period: "year" },
+    source: "Ashby",
+    atsPlatform: "Ashby",
+    postedAt: daysAgo(4.8),
+    discoveredAt: daysAgo(4),
+    description:
+      "Own reporting and analysis for go-to-market teams. Build dashboards, run ad hoc analysis, and partner directly with leadership.",
+    rawFitScore: 84,
+    resumeScore: 89,
+    applicationStatus: "tailoring",
+    recruiterStatus: "not_searched",
+    strongMatches: ["SQL", "Tableau", "Power BI", "Statistical modeling"],
+    gaps: ["Looker"],
+    requirements: [
+      { id: "r1", label: "SQL", importance: "required", match: "exact", evidence: "SQL across multiple roles", source: "career_evidence.json" },
+      { id: "r2", label: "Tableau or Power BI", importance: "required", match: "exact", evidence: "Power BI (DAX), Tableau", source: "candidate_master_profile.json" },
+      { id: "r3", label: "Statistical modeling", importance: "preferred", match: "exact", evidence: "Regression-based demand-forecasting model", source: "career_evidence.json" },
+      { id: "r4", label: "Looker", importance: "preferred", match: "gap" },
+    ],
+    matchBreakdown: { overall: 84, mandatory: 90, technical: 82, experience: 80, domain: 70, education: 100, logistics: 100 },
+    applyUrl: "https://jobs.ashbyhq.com/example/5",
+  },
+  {
+    id: "job_rippling_pm",
+    title: "Technical Program Manager, Data Platform",
+    company: { id: "rippling", name: "Rippling", industry: "HR / Payroll SaaS" },
+    location: "New York, NY",
+    workArrangement: "hybrid",
+    salary: { min: 145000, max: 185000, period: "year" },
+    source: "Company Career Page",
+    atsPlatform: "Workday",
+    postedAt: daysAgo(6),
+    discoveredAt: daysAgo(5),
+    description:
+      "Own delivery for the data platform roadmap. Coordinate across data engineering, analytics, and product to keep milestones honest.",
+    rawFitScore: 74,
+    resumeScore: undefined,
+    applicationStatus: "discovered",
+    recruiterStatus: "not_searched",
+    strongMatches: ["Project planning", "Cross-functional coordination", "Agile PM"],
+    gaps: ["Formal TPM title experience", "6+ years required"],
+    requirements: [
+      { id: "r1", label: "6+ years program management", importance: "required", match: "gap" },
+      { id: "r2", label: "Cross-functional coordination", importance: "required", match: "exact", evidence: "Coordinated engagements across 20+ regional markets", source: "career_evidence.json" },
+      { id: "r3", label: "Agile Project Management", importance: "preferred", match: "exact", evidence: "Agile Project Management certification", source: "candidate_master_profile.json" },
+    ],
+    matchBreakdown: { overall: 74, mandatory: 60, technical: 70, experience: 65, domain: 75, education: 100, logistics: 100 },
+    applyUrl: "https://rippling.com/careers/example/6",
+  },
+];
+
+function daysAgo(days: number): string {
+  // Deterministic relative to a fixed reference so mock data doesn't drift
+  // or use Date.now() (avoided per workflow constraints elsewhere in this
+  // project) — good enough for illustrative UI purposes.
+  const reference = new Date("2026-08-09T09:00:00Z").getTime();
+  return new Date(reference - days * 24 * 60 * 60 * 1000).toISOString();
+}
