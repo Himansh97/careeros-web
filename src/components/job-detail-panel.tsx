@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Building2, MapPin, ArrowUpRight, FileText, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { formatSalary } from "@/lib/format";
 import type { Job } from "@/types/job";
 
 export function JobDetailPanel({ job }: { job: Job }) {
+  const router = useRouter();
   const salary = formatSalary(job.salary);
 
   return (
@@ -42,11 +44,13 @@ export function JobDetailPanel({ job }: { job: Job }) {
           <Button
             size="sm"
             onClick={() =>
-              toast.info("Resume tailoring isn't connected yet — this will generate a job-specific resume version once wired up.")
+              typeof job.resumeScore === "number"
+                ? router.push(`/resume/${job.id}`)
+                : toast.info("Resume tailoring isn't connected yet — this will generate a job-specific resume version once wired up.")
             }
           >
             <FileText className="size-3.5" strokeWidth={1.75} />
-            Tailor Resume
+            {typeof job.resumeScore === "number" ? "View Tailored Resume" : "Tailor Resume"}
           </Button>
           <Button
             size="sm"

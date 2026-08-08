@@ -120,11 +120,13 @@ export default function JobDetailPage() {
           <Button
             size="sm"
             onClick={() =>
-              toast.info("Resume tailoring isn't connected yet — this will generate a job-specific resume version once wired up.")
+              typeof job.resumeScore === "number"
+                ? router.push(`/resume/${job.id}`)
+                : toast.info("Resume tailoring isn't connected yet — this will generate a job-specific resume version once wired up.")
             }
           >
             <FileText className="size-3.5" strokeWidth={1.75} />
-            Tailor Resume
+            {typeof job.resumeScore === "number" ? "View Tailored Resume" : "Tailor Resume"}
           </Button>
           <Button
             size="sm"
@@ -208,11 +210,28 @@ export default function JobDetailPage() {
         </TabsContent>
 
         <TabsContent value="resume">
-          <EmptyState
-            icon={FileText}
-            title="No tailored resume yet"
-            description="Click Tailor Resume above to generate a job-specific version once resume tailoring is connected."
-          />
+          {typeof job.resumeScore === "number" ? (
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-foreground">Tailored resume ready</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Resume score {job.resumeScore} — open the full workspace to compare versions and see the recruiter audit.
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => router.push(`/resume/${job.id}`)}>
+                  <FileText className="size-3.5" strokeWidth={1.75} />
+                  Open Resume Workspace
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <EmptyState
+              icon={FileText}
+              title="No tailored resume yet"
+              description="Click Tailor Resume above to generate a job-specific version once resume tailoring is connected."
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="application">
