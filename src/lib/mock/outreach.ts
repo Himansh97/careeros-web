@@ -60,6 +60,12 @@ export const mockContacts: RecruiterContact[] = [
     status: "sent",
     lastContactAt: "2026-07-30T08:30:00Z",
     followUpDueAt: "2026-08-11T09:00:00Z",
+    sentMessage: {
+      channel: "email",
+      at: "2026-07-30T08:30:00Z",
+      body:
+        "Hi Jordan — I applied for the Business Analyst role at Airtable last week.\n\nThe operations focus lined up closely with my last few years: at Freyr Solutions I gathered requirements across 20+ regional markets and consolidated fragmented reporting into a single SQL-to-Power BI pipeline, cutting cycle time 40%.\n\nHappy to share more if it's useful.\n\nBest,\nHimanshu Srivastava",
+    },
   },
   {
     id: "contact_brex",
@@ -76,6 +82,18 @@ export const mockContacts: RecruiterContact[] = [
     channel: "email",
     status: "replied",
     lastContactAt: "2026-07-19T09:30:00Z",
+    sentMessage: {
+      channel: "email",
+      at: "2026-07-19T09:30:00Z",
+      body:
+        "Hi Sam — I applied for the Data Engineer role at Brex yesterday.\n\nThe pipeline ownership scope stood out. At Supreme Lending I built and deployed a production Python/SQL/PySpark pipeline processing thousands of transaction records, and ran ETL over 1M+ records with multi-layer data-quality controls at Syracuse.\n\nWould welcome the chance to talk.\n\nBest,\nHimanshu Srivastava",
+    },
+    reply: {
+      channel: "email",
+      at: "2026-07-22T14:00:00Z",
+      body:
+        "Hi Himanshu — thanks for reaching out, and good timing. Your pipeline background looks like a fit for what this team needs.\n\nI'd like to set up a 30-minute intro call this week. Are you free Thursday or Friday afternoon CT?\n\nBest,\nSam",
+    },
   },
   {
     id: "contact_vercel",
@@ -92,5 +110,17 @@ export const mockContacts: RecruiterContact[] = [
     channel: "email",
     status: "replied",
     lastContactAt: "2026-07-12T10:00:00Z",
+    sentMessage: {
+      channel: "email",
+      at: "2026-07-12T10:00:00Z",
+      body:
+        "Hi Alicia — I applied for the Data Analyst role at Vercel earlier this month.\n\nThe go-to-market analytics scope matched my background well: I've owned reporting infrastructure end-to-end (SQL, Power BI, Tableau) and built regression-based forecasting models that improved planning accuracy 25%.\n\nHappy to send anything else that would help.\n\nBest,\nHimanshu Srivastava",
+    },
+    reply: {
+      channel: "email",
+      at: "2026-07-14T09:20:00Z",
+      body:
+        "Hi Himanshu — thanks for following up. I've shared your resume with the hiring manager and we'd like to move ahead with a recruiter screen.\n\nI'll send over scheduling options shortly.\n\nAlicia",
+    },
   },
 ];

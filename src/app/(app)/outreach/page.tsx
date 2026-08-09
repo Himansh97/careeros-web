@@ -11,6 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { ContactPanel } from "@/components/outreach/contact-panel";
@@ -87,7 +93,14 @@ export default function OutreachPage() {
                   <TableCell className="text-sm tabular-nums text-foreground">{c.confidence}%</TableCell>
                   <TableCell className="text-sm capitalize text-muted-foreground">{c.channel}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="font-normal">
+                    <Badge
+                      variant={c.status === "replied" ? "outline" : "secondary"}
+                      className={
+                        c.status === "replied"
+                          ? "border-primary/30 bg-primary/10 font-medium text-primary"
+                          : "font-normal"
+                      }
+                    >
                       {statusLabel[c.status]}
                     </Badge>
                   </TableCell>
@@ -100,6 +113,7 @@ export default function OutreachPage() {
           </Table>
         </div>
 
+        {/* Desktop: side panel */}
         <div className="hidden w-[360px] shrink-0 xl:block">
           {selected ? (
             <ContactPanel contact={selected} />
@@ -113,6 +127,25 @@ export default function OutreachPage() {
           )}
         </div>
       </div>
+
+      {/* Below xl: same panel as a drawer, so selecting a row still does something */}
+      <Sheet
+        open={selected !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelected(null);
+        }}
+      >
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-md xl:hidden">
+          <SheetHeader className="sr-only">
+            <SheetTitle>{selected?.name ?? "Contact"}</SheetTitle>
+          </SheetHeader>
+          {selected && (
+            <div className="p-4">
+              <ContactPanel contact={selected} />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

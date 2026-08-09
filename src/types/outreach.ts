@@ -23,6 +23,18 @@ export interface RecruiterContact {
   status: OutreachStatus;
   lastContactAt?: string;
   followUpDueAt?: string;
+  /** Drafted but not yet sent — awaiting your approval. */
   emailDraft?: string;
+  /** Drafted but not yet sent — always sent manually by you. */
   linkedinDraft?: string;
+  /** What was actually sent, kept as a record once status is sent/replied. */
+  sentMessage?: OutreachMessage;
+  /** The recruiter's reply, when one came back. */
+  reply?: OutreachMessage;
+}
+
+export interface OutreachMessage {
+  body: string;
+  at: string;
+  channel: OutreachChannel;
 }
