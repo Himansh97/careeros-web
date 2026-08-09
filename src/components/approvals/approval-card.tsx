@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
+  ExternalLink,
   Send,
   MessageSquareText,
   HelpCircle,
@@ -39,13 +40,22 @@ export function ApprovalCard({ item }: { item: ApprovalItem }) {
   const [answerOpen, setAnswerOpen] = React.useState(false);
   const [answer, setAnswer] = React.useState("");
   const Icon = kindConfig[item.kind].icon;
+  const applyUrl = (item as { applyUrl?: string }).applyUrl;
 
   const resolved = item.status !== "pending";
 
   function handleApprove() {
     approveItem(item.id);
     toast.success(
-      item.kind === "application" ? "Approved — staged for submission" : "Approved"
+      item.kind === "application"
+        ? "Marked as applied"
+        : "Approved",
+      {
+        description:
+          item.kind === "application"
+            ? "CareerOS does not submit applications — this records that you did."
+            : undefined,
+      }
     );
   }
 
@@ -167,9 +177,19 @@ export function ApprovalCard({ item }: { item: ApprovalItem }) {
           </Dialog>
         ) : !resolved ? (
           <>
-            <Button size="sm" onClick={handleApprove}>
+            {applyUrl && (
+              // The actual application happens on the employer's own site.
+              // Nothing here submits on the candidate's behalf.
+              <Button size="sm" asChild>
+                <a href={applyUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="size-3.5" strokeWidth={1.75} />
+                  Open application
+                </a>
+              </Button>
+            )}
+            <Button size="sm" variant={applyUrl ? "outline" : "default"} onClick={handleApprove}>
               <CheckCircle2 className="size-3.5" strokeWidth={1.75} />
-              {item.kind === "application" ? "Approve & Submit" : "Approve"}
+              {item.kind === "application" ? "Mark as applied" : "Approve"}
             </Button>
             <Button size="sm" variant="outline" onClick={() => router.push(`/jobs/${item.jobId}`)}>
               Review
