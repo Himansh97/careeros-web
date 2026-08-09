@@ -5,6 +5,7 @@ import { FileDown, FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBadge } from "@/components/score-badge";
+import { API_URL, isLiveApi } from "@/lib/api/client";
 import type { ResumeVersion } from "@/types/resume";
 
 const statusLabel: Record<ResumeVersion["status"], string> = {
@@ -19,6 +20,21 @@ interface ResumeHeaderProps {
 }
 
 export function ResumeHeader({ resume, onApprove }: ResumeHeaderProps) {
+  function download(fmt: "pdf" | "docx") {
+    if (!isLiveApi()) {
+      toast.info("Export needs the CareerOS API running.");
+      return;
+    }
+    // The API sets Content-Disposition, so an anchor click downloads the file
+    // with the right filename without buffering it in memory here.
+    const a = document.createElement("a");
+    a.href = `${API_URL}/api/jobs/${encodeURIComponent(resume.jobId)}/resume.${fmt}`;
+    a.rel = "noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   return (
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -41,23 +57,11 @@ export function ResumeHeader({ resume, onApprove }: ResumeHeaderProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              toast.info("PDF export isn't connected yet — no document-generation tool is wired up.")
-            }
-          >
+          <Button size="sm" variant="outline" onClick={() => download("pdf")}>
             <FileDown className="size-3.5" strokeWidth={1.75} />
             Export PDF
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              toast.info("DOCX export isn't connected yet — no document-generation tool is wired up.")
-            }
-          >
+          <Button size="sm" variant="outline" onClick={() => download("docx")}>
             <FileText className="size-3.5" strokeWidth={1.75} />
             Export DOCX
           </Button>
