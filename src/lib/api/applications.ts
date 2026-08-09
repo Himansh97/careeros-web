@@ -14,6 +14,10 @@ let cache: ApplicationRecord[] | null = null;
 
 function read(): ApplicationRecord[] {
   if (typeof window === "undefined") return [];
+  // Without mock mode there is no backend, so there is genuinely nothing to
+  // show. Returning the mock seed here would make callers that don't gate on
+  // isMockMode() (e.g. the dashboard) display fabricated counts as if real.
+  if (!isMockMode()) return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as ApplicationRecord[];

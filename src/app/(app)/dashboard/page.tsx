@@ -13,6 +13,7 @@ import {
   MessageSquareReply,
   CalendarCheck2,
   Bot,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,6 +46,7 @@ export default function DashboardPage() {
     () => [] as ApprovalItem[]
   );
 
+  const notConnected = data?.ok === false && data.reason === "not_connected";
   const jobs = data?.ok ? data.data.jobs : [];
   const strongMatches = jobs.filter((j) => (j.rawFitScore ?? 0) >= 80).length;
   const pendingApprovals = approvals.filter((a) => a.status === "pending").length;
@@ -70,9 +72,11 @@ export default function DashboardPage() {
       <PageHeader
         title="Good morning, Himanshu"
         description={
-          jobs.length > 0
-            ? `${jobs.length} opportunities in view · ${pendingApprovals} item${pendingApprovals === 1 ? "" : "s"} need your approval.`
-            : "No searches have been run yet — connect job discovery to start finding opportunities."
+          notConnected
+            ? "No data source is connected — nothing below reflects real opportunities or applications."
+            : jobs.length > 0
+              ? `${jobs.length} opportunities in view · ${pendingApprovals} item${pendingApprovals === 1 ? "" : "s"} need your approval.`
+              : "No searches have been run yet — connect job discovery to start finding opportunities."
         }
         action={
           <div className="flex items-center gap-2">
@@ -131,6 +135,12 @@ export default function DashboardPage() {
               <Skeleton key={i} className="h-20 w-full" />
             ))}
           </div>
+        ) : notConnected ? (
+          <EmptyState
+            icon={AlertCircle}
+            title="No data source connected"
+            description="Job discovery has no backend to call. Set NEXT_PUBLIC_USE_MOCK_DATA=true to preview with mock data, or connect a real search provider."
+          />
         ) : topOpportunities.length === 0 ? (
           <EmptyState
             icon={Briefcase}

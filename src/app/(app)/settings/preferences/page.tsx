@@ -1,7 +1,11 @@
 "use client";
 
+import { AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
+
+const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 const targetRoles = [
   "Project Manager (Data/Analytics)",
@@ -30,6 +34,23 @@ const disclosures = [
 ];
 
 export default function PreferencesPage() {
+  if (!isMockMode()) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader
+          title="Preferences"
+          description="Target roles, locations, and the standard answers used on application forms."
+        />
+        <EmptyState
+          icon={AlertCircle}
+          title="Preferences aren't connected yet"
+          description="These will read from job_preferences.yaml and application_answers.yaml once the profile data layer is wired up."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-6">
       <PageHeader

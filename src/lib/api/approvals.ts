@@ -13,6 +13,9 @@ let cache: ApprovalItem[] | null = null;
 
 function read(): ApprovalItem[] {
   if (typeof window === "undefined") return [];
+  // See the equivalent note in applications.ts — no backend means no data,
+  // not mock data dressed up as real.
+  if (!isMockMode()) return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as ApprovalItem[];
