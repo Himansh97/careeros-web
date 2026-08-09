@@ -6,6 +6,7 @@ const STORAGE_KEY = "careeros:approvals";
 
 const listeners = new Set<() => void>();
 let cache: ApprovalItem[] | null = null;
+let fetched = false;
 
 function read(): ApprovalItem[] {
   if (typeof window === "undefined") return [];
@@ -32,8 +33,11 @@ function write(items: ApprovalItem[]) {
 
 export function subscribeApprovals(onChange: () => void) {
   listeners.add(onChange);
-  if (isLiveApi() && cache === null) {
-    cache = [];
+  if (isLiveApi() && !fetched) {
+    // Prime from the backend on first subscribe. Guarded by an explicit
+    // flag because React calls getSnapshot() first, which already
+    // initialises cache — so a `cache === null` check never fires.
+    fetched = true;
     void refreshApprovals();
   }
   return () => listeners.delete(onChange);

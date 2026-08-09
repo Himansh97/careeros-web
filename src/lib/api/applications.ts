@@ -7,6 +7,7 @@ const STORAGE_KEY = "careeros:applications";
 
 const listeners = new Set<() => void>();
 let cache: ApplicationRecord[] | null = null;
+let fetched = false;
 
 function read(): ApplicationRecord[] {
   if (typeof window === "undefined") return [];
@@ -35,9 +36,11 @@ function write(records: ApplicationRecord[]) {
 
 export function subscribeApplications(onChange: () => void) {
   listeners.add(onChange);
-  if (isLiveApi() && cache === null) {
-    // Prime the store from the backend the first time anything subscribes.
-    cache = [];
+  if (isLiveApi() && !fetched) {
+    // Prime from the backend on first subscribe. Guarded by an explicit
+    // flag because React calls getSnapshot() first, which already
+    // initialises cache — so a `cache === null` check never fires.
+    fetched = true;
     void refreshApplications();
   }
   return () => listeners.delete(onChange);
