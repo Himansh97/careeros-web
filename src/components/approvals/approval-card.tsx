@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   ExternalLink,
+  FileDown,
   Send,
   MessageSquareText,
   HelpCircle,
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { approveItem, rejectItem, answerQuestion } from "@/lib/api/approvals";
+import { API_URL, isLiveApi } from "@/lib/api/client";
 import type { ApprovalItem } from "@/types/approval";
 
 const kindConfig: Record<ApprovalItem["kind"], { icon: typeof Send; label: string }> = {
@@ -41,6 +43,15 @@ export function ApprovalCard({ item }: { item: ApprovalItem }) {
   const [answer, setAnswer] = React.useState("");
   const Icon = kindConfig[item.kind].icon;
   const applyUrl = (item as { applyUrl?: string }).applyUrl;
+
+  function downloadResume(fmt: "pdf" | "docx") {
+    const a = document.createElement("a");
+    a.href = `${API_URL}/api/jobs/${encodeURIComponent(item.jobId)}/resume.${fmt}`;
+    a.rel = "noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
 
   const resolved = item.status !== "pending";
 
@@ -177,6 +188,12 @@ export function ApprovalCard({ item }: { item: ApprovalItem }) {
           </Dialog>
         ) : !resolved ? (
           <>
+            {isLiveApi() && (
+              <Button size="sm" variant="outline" onClick={() => downloadResume("pdf")}>
+                <FileDown className="size-3.5" strokeWidth={1.75} />
+                Resume PDF
+              </Button>
+            )}
             {applyUrl && (
               // The actual application happens on the employer's own site.
               // Nothing here submits on the candidate's behalf.
