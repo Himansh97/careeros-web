@@ -32,6 +32,8 @@ import { MatchBreakdown } from "@/components/match-breakdown";
 import { RequirementMatrix } from "@/components/requirement-matrix";
 import { EmptyState } from "@/components/empty-state";
 import { getJob } from "@/lib/api/jobs";
+import { isLiveApi } from "@/lib/api/client";
+import { RecruiterTab } from "@/components/job/recruiter-tab";
 import { formatRelativeTime, formatSalary } from "@/lib/format";
 
 export default function JobDetailPage() {
@@ -243,15 +245,15 @@ export default function JobDetailPage() {
         </TabsContent>
 
         <TabsContent value="recruiter">
-          <EmptyState
-            icon={job.recruiterStatus === "found" ? UserCheck : UserX}
-            title={job.recruiterStatus === "found" ? "Recruiter found (preview)" : "No recruiter identified"}
-            description={
-              job.recruiterStatus === "found"
-                ? "Recruiter research isn't connected yet — a real name, confidence score, and outreach drafts will appear here once it is."
-                : "Recruiter research runs once an application is ready to prepare."
-            }
-          />
+          {isLiveApi() ? (
+            <RecruiterTab jobId={job.id} companyName={job.company.name} />
+          ) : (
+            <EmptyState
+              icon={job.recruiterStatus === "found" ? UserCheck : UserX}
+              title={job.recruiterStatus === "found" ? "Recruiter found (preview)" : "No recruiter identified"}
+              description="Connect the CareerOS API to look up real recruiter contacts or add them manually."
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="activity">
