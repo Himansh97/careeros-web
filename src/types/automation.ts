@@ -4,7 +4,8 @@ export interface PipelineNode {
   id: string;
   label: string;
   state: NodeState;
-  detail?: string;
+  /** null when the backend has no detail for this node yet. */
+  detail?: string | null;
 }
 
 export interface AutomationRules {

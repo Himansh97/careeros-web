@@ -22,6 +22,8 @@ import { JobCard } from "@/components/job-card";
 import { JobDetailPanel } from "@/components/job-detail-panel";
 import { searchJobs } from "@/lib/api/jobs";
 import { saveSearch } from "@/lib/saved-searches";
+import { createSavedSearch } from "@/lib/api/ops";
+import { isLiveApi } from "@/lib/api/client";
 import type { Job, JobSearchFilters, JobSort, WorkArrangement } from "@/types/job";
 
 const salaryOptions = [
@@ -122,7 +124,12 @@ export default function JobsPage() {
 
   function handleSaveSearch() {
     const label = query || location || "New search";
-    saveSearch(label, filters);
+    if (isLiveApi()) {
+      // Persist server-side so a saved search survives clearing the browser.
+      void createSavedSearch(label, filters as Record<string, unknown>);
+    } else {
+      saveSearch(label, filters);
+    }
     toast.success(`Saved search "${label}"`, {
       description: "Find it under Saved Searches in the sidebar.",
     });
@@ -134,7 +141,7 @@ export default function JobsPage() {
     <div className="flex flex-1 flex-col gap-5">
       <PageHeader
         title="Discover Jobs"
-        description="Search Indeed, Greenhouse, Lever, and other supported sources."
+        description="Live across Greenhouse, Ashby, The Muse, Arbeitnow and RemoteOK — scored against your real evidence."
       />
 
       {/* Search header */}
