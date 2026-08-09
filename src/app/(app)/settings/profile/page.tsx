@@ -1,9 +1,13 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, ShieldCheck, ShieldAlert, Ban } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getProfile } from "@/lib/api/profile";
+import { isLiveApi } from "@/lib/api/client";
 import {
   mockProfileSections,
   mockEvidence,
@@ -12,7 +16,10 @@ import {
 
 const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
-const statusConfig: Record<EvidenceStatus, { icon: typeof ShieldCheck; label: string; className: string }> = {
+const statusConfig: Record<
+  EvidenceStatus,
+  { icon: typeof ShieldCheck; label: string; className: string }
+> = {
   verified: { icon: ShieldCheck, label: "Verified", className: "text-primary" },
   needs_review: {
     icon: ShieldAlert,
@@ -32,18 +39,150 @@ function StatusPill({ status }: { status: EvidenceStatus }) {
   );
 }
 
+/** Classification from career_evidence.json maps onto the review states. */
+function classify(classification: string, approved: boolean): EvidenceStatus {
+  if (!approved) return "do_not_use";
+  if (classification === "PRESENT_AND_EXPLICIT") return "verified";
+  return "needs_review";
+}
+
 export default function CandidateProfilePage() {
-  if (!isMockMode()) {
+  const live = isLiveApi();
+  const { data, isLoading } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getProfile,
+    enabled: live,
+  });
+
+  if (live) {
+    if (isLoading) {
+      return (
+        <div className="flex flex-1 flex-col gap-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      );
+    }
+
+    if (!data?.ok) {
+      return (
+        <div className="flex flex-1 flex-col gap-6">
+          <PageHeader title="Candidate Profile" description="Your source of truth." />
+          <EmptyState
+            icon={AlertCircle}
+            title="Profile unavailable"
+            description="The API couldn't read candidate_master_profile.json or career_evidence.json from the careeros directory."
+            className="flex-1"
+          />
+        </div>
+      );
+    }
+
+    const p = data.data;
+    const verified = p.evidence.filter(
+      (e) => classify(e.classification, e.approvedForResume) === "verified"
+    ).length;
+    const review = p.evidence.length - verified;
+
+    const sections = [
+      {
+        label: "Personal",
+        items: [
+          { label: "Legal name", value: p.name, status: "verified" as EvidenceStatus },
+          { label: "Location", value: p.location, status: "verified" as EvidenceStatus },
+          { label: "Email", value: p.email, status: "verified" as EvidenceStatus },
+          {
+            label: "Work authorization",
+            value: p.workAuthorization,
+            status: "verified" as EvidenceStatus,
+          },
+        ],
+      },
+      {
+        label: "Education",
+        items: p.education.map((e) => ({
+          label: e.degree,
+          value: `${e.institution} · ${e.graduation_date}`,
+          status: "verified" as EvidenceStatus,
+        })),
+      },
+      {
+        label: "Certifications",
+        items: p.certifications.map((c) => ({
+          label: c,
+          value: "",
+          status: "verified" as EvidenceStatus,
+        })),
+      },
+    ];
+
     return (
       <div className="flex flex-1 flex-col gap-6">
         <PageHeader
           title="Candidate Profile"
-          description="Your source of truth — nothing on a resume can claim anything not backed here."
+          description="Read live from your careeros files. Resume tailoring can only draw from the evidence below."
         />
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          {sections.map((section) => (
+            <div key={section.label} className="rounded-lg border border-border bg-card p-4">
+              <h2 className="mb-3 text-sm font-medium text-foreground">{section.label}</h2>
+              <dl className="space-y-2.5">
+                {section.items.map((item) => (
+                  <div key={item.label}>
+                    <dt className="text-xs text-muted-foreground">{item.label}</dt>
+                    <dd className="flex items-center justify-between gap-2 text-sm text-foreground">
+                      <span className="min-w-0 break-words">{item.value}</span>
+                      {item.status && <StatusPill status={item.status} />}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <h2 className="mb-1 text-sm font-medium text-foreground">Career Evidence Library</h2>
+          <p className="mb-3 text-xs text-muted-foreground">
+            {verified} verified · {review} need review. A job requirement with no matching
+            claim here is a true gap — it gets disclosed, never invented.
+          </p>
+          <div className="divide-y divide-border rounded-lg border border-border bg-card">
+            {p.evidence.map((claim) => (
+              <div key={claim.id} className="px-4 py-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-medium text-foreground">{claim.employer}</h3>
+                  <StatusPill status={classify(claim.classification, claim.approvedForResume)} />
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">&ldquo;{claim.claim}&rdquo;</p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground/70">
+                    {claim.source} · {claim.dateRange}
+                  </span>
+                  {claim.skills.map((s) => (
+                    <Badge key={s} variant="secondary" className="font-normal">
+                      {s}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isMockMode()) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Candidate Profile" description="Your source of truth." />
         <EmptyState
           icon={AlertCircle}
-          title="Profile isn't connected yet"
-          description="This will read from candidate_master_profile.json and career_evidence.json once the profile data layer is wired up — nothing here is fabricated in the meantime."
+          title="Profile isn't connected"
+          description="Start the CareerOS API and set NEXT_PUBLIC_API_URL, or enable mock data to preview."
           className="flex-1"
         />
       </div>
@@ -56,7 +195,6 @@ export default function CandidateProfilePage() {
         title="Candidate Profile"
         description="Your source of truth. Resume tailoring can only draw from verified evidence below."
       />
-
       <div className="grid gap-3 lg:grid-cols-3">
         {mockProfileSections.map((section) => (
           <div key={section.label} className="rounded-lg border border-border bg-card p-4">
@@ -75,14 +213,8 @@ export default function CandidateProfilePage() {
           </div>
         ))}
       </div>
-
       <div>
         <h2 className="mb-1 text-sm font-medium text-foreground">Career Evidence Library</h2>
-        <p className="mb-3 text-xs text-muted-foreground">
-          {mockEvidence.filter((e) => e.status === "verified").length} verified claims ·{" "}
-          {mockEvidence.filter((e) => e.status === "needs_review").length} need review. A job
-          requirement with no matching claim here is a true gap — it gets disclosed, never invented.
-        </p>
         <div className="divide-y divide-border rounded-lg border border-border bg-card">
           {mockEvidence.map((claim) => (
             <div key={claim.id} className="px-4 py-3.5">
@@ -91,14 +223,6 @@ export default function CandidateProfilePage() {
                 <StatusPill status={claim.status} />
               </div>
               <p className="mt-1 text-sm text-muted-foreground">&ldquo;{claim.statement}&rdquo;</p>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <span className="text-xs text-muted-foreground/70">{claim.source}</span>
-                {claim.skills.map((s) => (
-                  <Badge key={s} variant="secondary" className="font-normal">
-                    {s}
-                  </Badge>
-                ))}
-              </div>
             </div>
           ))}
         </div>

@@ -24,7 +24,15 @@ import { mockContacts } from "@/lib/mock/outreach";
 import { formatRelativeTime } from "@/lib/format";
 import type { OutreachStatus, RecruiterContact } from "@/types/outreach";
 
-const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+// A data source exists if either the live backend or the mock layer is on.
+const hasDataSource = () =>
+  process.env.NEXT_PUBLIC_API_URL !== "" && process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? true
+    : process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
+// LIVE_UNAVAILABLE: no live backend equivalent for this page yet.
+const liveMode = () =>
+  process.env.NEXT_PUBLIC_API_URL !== "" && process.env.NEXT_PUBLIC_API_URL !== undefined;
 
 const statusLabel: Record<OutreachStatus, string> = {
   not_started: "Not started",
@@ -36,9 +44,24 @@ const statusLabel: Record<OutreachStatus, string> = {
 };
 
 export default function OutreachPage() {
+  // Hooks must run before any conditional return.
   const [selected, setSelected] = React.useState<RecruiterContact | null>(null);
 
-  if (!isMockMode()) {
+  if (liveMode()) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Recruiter Outreach" description="Connected to the live CareerOS API." />
+        <EmptyState
+          icon={AlertCircle}
+          title="Not available on the live backend yet"
+          description="Per-job outreach drafts are generated live from the Job Detail page. A cross-job recruiter list needs contact data the public job APIs don't expose."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
+  if (!hasDataSource()) {
     return (
       <div className="flex flex-1 flex-col gap-6">
         <PageHeader

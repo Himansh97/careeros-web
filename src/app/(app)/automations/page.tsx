@@ -11,10 +11,32 @@ import { PipelineNodeCard } from "@/components/automation/pipeline-node";
 import { AutomationRulesPanel } from "@/components/automation/automation-rules";
 import { mockPipelineNodes, mockTodayStats } from "@/lib/mock/automation";
 
-const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+// A data source exists if either the live backend or the mock layer is on.
+const hasDataSource = () =>
+  process.env.NEXT_PUBLIC_API_URL !== "" && process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? true
+    : process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
+// LIVE_UNAVAILABLE: no live backend equivalent for this page yet.
+const liveMode = () =>
+  process.env.NEXT_PUBLIC_API_URL !== "" && process.env.NEXT_PUBLIC_API_URL !== undefined;
 
 export default function AutomationsPage() {
-  if (!isMockMode()) {
+  if (liveMode()) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Autopilot" description="Connected to the live CareerOS API." />
+        <EmptyState
+          icon={AlertCircle}
+          title="Not available on the live backend yet"
+          description="Automated multi-job runs aren't wired to the live backend yet. Discovery, scoring, and tailoring all work today from the Discover Jobs page."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
+  if (!hasDataSource()) {
     return (
       <div className="flex flex-1 flex-col gap-6">
         <PageHeader

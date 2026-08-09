@@ -6,10 +6,32 @@ import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { mockContacts } from "@/lib/mock/outreach";
 
-const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+// A data source exists if either the live backend or the mock layer is on.
+const hasDataSource = () =>
+  process.env.NEXT_PUBLIC_API_URL !== "" && process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? true
+    : process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
+// LIVE_UNAVAILABLE: no live backend equivalent for this page yet.
+const liveMode = () =>
+  process.env.NEXT_PUBLIC_API_URL !== "" && process.env.NEXT_PUBLIC_API_URL !== undefined;
 
 export default function ContactsPage() {
-  if (!isMockMode()) {
+  if (liveMode()) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Contacts" description="Connected to the live CareerOS API." />
+        <EmptyState
+          icon={AlertCircle}
+          title="Not available on the live backend yet"
+          description="No contact directory exists on the live backend — public job-board APIs expose no recruiter identities, and inferring them would be fabrication."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
+  if (!hasDataSource()) {
     return (
       <div className="flex flex-1 flex-col gap-6">
         <PageHeader

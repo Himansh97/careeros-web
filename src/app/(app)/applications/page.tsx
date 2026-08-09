@@ -11,7 +11,11 @@ import { TableView } from "@/components/applications/table-view";
 import { subscribeApplications, getApplicationsSnapshot } from "@/lib/api/applications";
 import type { ApplicationRecord } from "@/types/application";
 
-const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+// A data source exists if either the live backend or the mock layer is on.
+const hasDataSource = () =>
+  process.env.NEXT_PUBLIC_API_URL !== "" && process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? true
+    : process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 export default function ApplicationsPage() {
   const [view, setView] = React.useState<"board" | "table">("board");
@@ -21,7 +25,7 @@ export default function ApplicationsPage() {
     () => [] as ApplicationRecord[]
   );
 
-  if (!isMockMode()) {
+  if (!hasDataSource()) {
     return (
       <div className="flex flex-1 flex-col gap-6">
         <PageHeader
