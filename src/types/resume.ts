@@ -13,6 +13,11 @@ export interface ResumeBullet {
   changeType: BulletChangeType;
   whyChanged?: string;
   evidence?: BulletEvidence;
+  /** "user" when the candidate edited this bullet themselves. */
+  editedBy?: "system" | "user";
+  /** True when the wording goes beyond what the evidence file backs. */
+  unverified?: boolean;
+  verificationWarnings?: string[];
 }
 
 export interface ResumeSection {
@@ -53,4 +58,8 @@ export interface ResumeVersion {
   sections: ResumeSection[];
   audit: RecruiterAudit;
   updatedAt: string;
+  summary?: string;
+  headline?: string;
+  /** Which document-level fields the candidate has edited by hand. */
+  editedFields?: string[];
 }

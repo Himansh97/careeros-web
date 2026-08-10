@@ -21,6 +21,66 @@ export async function getResume(jobId: string): Promise<ApiResult<ResumeVersion>
   return { ok: true, data: resume };
 }
 
+export interface BulletEditResult {
+  ok: true;
+  /**
+   * Reasons the edit isn't supported by the underlying evidence claim. The
+   * edit is still saved — it's the candidate's own history, and they may know
+   * things the evidence file doesn't record. The resume marks it unverified.
+   */
+  warnings: string[];
+  original: string;
+}
+
+/** Save an edited bullet for one job's resume. */
+export async function editBullet(
+  jobId: string,
+  claimId: string,
+  text: string
+): Promise<ApiResult<BulletEditResult>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch<BulletEditResult>(
+    `/api/jobs/${encodeURIComponent(jobId)}/resume/bullets/${encodeURIComponent(claimId)}`,
+    { method: "PUT", body: JSON.stringify({ text }) }
+  );
+}
+
+/** Drop your edit to a bullet, falling back to the tailored wording. */
+export async function revertBullet(
+  jobId: string,
+  claimId: string
+): Promise<ApiResult<{ ok: true }>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch<{ ok: true }>(
+    `/api/jobs/${encodeURIComponent(jobId)}/resume/bullets/${encodeURIComponent(claimId)}`,
+    { method: "DELETE" }
+  );
+}
+
+/** Save an edited summary or headline. */
+export async function editResumeField(
+  jobId: string,
+  field: "summary" | "headline",
+  text: string
+): Promise<ApiResult<{ ok: true }>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch<{ ok: true }>(
+    `/api/jobs/${encodeURIComponent(jobId)}/resume/${field}`,
+    { method: "PUT", body: JSON.stringify({ text }) }
+  );
+}
+
+/** Undo all of your edits, keeping the tailored resume underneath. */
+export async function resetResumeEdits(
+  jobId: string
+): Promise<ApiResult<{ ok: true }>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch<{ ok: true }>(
+    `/api/jobs/${encodeURIComponent(jobId)}/resume/edits`,
+    { method: "DELETE" }
+  );
+}
+
 export async function listResumes(): Promise<ApiResult<ResumeVersion[]>> {
   if (isLiveApi()) {
     // Resumes are generated per job on demand, so the list view derives from
