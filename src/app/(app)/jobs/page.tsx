@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
 import { JobDetailPanel } from "@/components/job-detail-panel";
+import { ImportByUrl } from "@/components/jobs/import-by-url";
 import { searchJobs } from "@/lib/api/jobs";
 import { saveSearch } from "@/lib/saved-searches";
 import { createSavedSearch } from "@/lib/api/ops";
@@ -146,6 +147,9 @@ export default function JobsPage() {
         title="Discover Jobs"
         description="Live across Greenhouse, Ashby, The Muse, Arbeitnow and RemoteOK — scored against your real evidence."
       />
+
+      {/* Paste a link to any posting, including boards we don't poll. */}
+      <ImportByUrl />
 
       {/* Search header */}
       <div className="flex flex-col gap-2 sm:flex-row">

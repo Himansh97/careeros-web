@@ -73,6 +73,106 @@ export async function getJob(id: string): Promise<ApiResult<Job>> {
   return { ok: true, data: job };
 }
 
+/**
+ * Outcome of pasting a posting link.
+ *
+ * `blocked` and `unresolved` are ordinary outcomes, not errors: some hosts
+ * (LinkedIn, Indeed) prohibit automated access and are refused by name rather
+ * than attempted, and plenty of career pages sit on an ATS with no public API.
+ * Both cases fall through to pasting the description text, which reaches the
+ * identical scoring and tailoring code.
+ */
+export type ImportedJobResult =
+  | {
+      kind: "job";
+      jobId: string;
+      title: string;
+      company: string;
+      location?: string | null;
+      applyUrl?: string | null;
+      rawFitScore: number;
+      eligibility?: { verdict?: string; blockers?: { detail?: string }[] } | null;
+    }
+  | { kind: "blocked"; host: string; reason: string }
+  | { kind: "unresolved"; reason: string };
+
+interface FromUrlResponse {
+  blocked?: boolean;
+  unresolved?: boolean;
+  host?: string;
+  reason?: string;
+  jobId?: string;
+  title?: string;
+  company?: string;
+  location?: string | null;
+  applyUrl?: string | null;
+  rawFitScore?: number;
+  eligibility?: { verdict?: string; blockers?: { detail?: string }[] } | null;
+}
+
+export async function importJobFromUrl(
+  url: string
+): Promise<ApiResult<ImportedJobResult>> {
+  const res = await apiFetch<FromUrlResponse>("/api/jobs/from-url", {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
+  if (!res.ok) return res;
+
+  const d = res.data;
+  if (d.blocked) {
+    return {
+      ok: true,
+      data: { kind: "blocked", host: d.host ?? "", reason: d.reason ?? "" },
+    };
+  }
+  if (d.unresolved || !d.jobId) {
+    return { ok: true, data: { kind: "unresolved", reason: d.reason ?? "" } };
+  }
+  return {
+    ok: true,
+    data: {
+      kind: "job",
+      jobId: d.jobId,
+      title: d.title ?? "",
+      company: d.company ?? "",
+      location: d.location,
+      applyUrl: d.applyUrl,
+      rawFitScore: d.rawFitScore ?? 0,
+      eligibility: d.eligibility,
+    },
+  };
+}
+
+/** Import a posting the user pasted as plain text, for hosts we may not fetch. */
+export async function importJobFromText(input: {
+  title: string;
+  company: string;
+  description: string;
+  applyUrl?: string;
+  location?: string;
+}): Promise<ApiResult<{ jobId: string }>> {
+  const id = `pasted_${Date.now()}`;
+  const res = await apiFetch<{ imported: number }>("/api/jobs/import", {
+    method: "POST",
+    body: JSON.stringify({
+      source: "manual-paste",
+      jobs: [
+        {
+          id,
+          title: input.title,
+          company: input.company,
+          description: input.description,
+          applyUrl: input.applyUrl ?? "",
+          location: input.location ?? "Not specified",
+        },
+      ],
+    }),
+  });
+  if (!res.ok) return res;
+  return { ok: true, data: { jobId: id } };
+}
+
 function matchesFilters(job: Job, filters: JobSearchFilters): boolean {
   if (filters.query) {
     const q = filters.query.toLowerCase();

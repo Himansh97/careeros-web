@@ -227,6 +227,7 @@ export default function ResumeWorkspacePage() {
       {backButton}
 
       <ResumeHeader
+        applyUrl={jobQuery.data?.ok ? jobQuery.data.data.applyUrl : null}
         resume={isApproved ? { ...resume, status: "approved" } : resume}
         onApprove={() => {
           setApproved(true);

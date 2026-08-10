@@ -1,11 +1,19 @@
 "use client";
 
+import * as React from "react";
 import { toast } from "sonner";
-import { FileDown, FileText, CheckCircle2 } from "lucide-react";
+import {
+  FileDown,
+  FileText,
+  CheckCircle2,
+  ExternalLink,
+  Wand2,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBadge } from "@/components/score-badge";
-import { API_URL, isLiveApi } from "@/lib/api/client";
+import { API_URL, apiFetch, isLiveApi } from "@/lib/api/client";
 import type { ResumeVersion } from "@/types/resume";
 
 const statusLabel: Record<ResumeVersion["status"], string> = {
@@ -17,9 +25,44 @@ const statusLabel: Record<ResumeVersion["status"], string> = {
 interface ResumeHeaderProps {
   resume: ResumeVersion;
   onApprove: () => void;
+  /** Employer's own application URL, when the posting carries one. */
+  applyUrl?: string | null;
 }
 
-export function ResumeHeader({ resume, onApprove }: ResumeHeaderProps) {
+export function ResumeHeader({ resume, onApprove, applyUrl }: ResumeHeaderProps) {
+  const [prefilling, setPrefilling] = React.useState(false);
+
+  /**
+   * Open the real form with the answers already filled in.
+   *
+   * The backend drives a visible browser and is structurally unable to press a
+   * submit control, so this stops one click short of applying — deliberately.
+   * It only works when the API is on this machine, since it opens a window here.
+   */
+  async function openPrefilled() {
+    if (!isLiveApi()) {
+      toast.info("Pre-fill needs the CareerOS API running locally.");
+      return;
+    }
+    setPrefilling(true);
+    const res = await apiFetch<{ filled?: number; note?: string }>(
+      `/api/jobs/${encodeURIComponent(resume.jobId)}/prefill`,
+      { method: "POST" }
+    );
+    setPrefilling(false);
+
+    if (!res.ok) {
+      toast.error("Could not open the pre-filled form", {
+        description: res.message ?? "The API may not be running locally.",
+      });
+      return;
+    }
+    toast.success("Form opened and filled", {
+      description:
+        res.data.note ?? "Review every answer, then submit it yourself.",
+    });
+  }
+
   function download(fmt: "pdf" | "docx") {
     if (!isLiveApi()) {
       toast.info("Export needs the CareerOS API running.");
@@ -64,6 +107,28 @@ export function ResumeHeader({ resume, onApprove }: ResumeHeaderProps) {
           <Button size="sm" variant="outline" onClick={() => download("docx")}>
             <FileText className="size-3.5" strokeWidth={1.75} />
             Export DOCX
+          </Button>
+          {applyUrl ? (
+            <Button size="sm" variant="outline" asChild>
+              <a href={applyUrl} target="_blank" rel="noreferrer noopener">
+                <ExternalLink className="size-3.5" strokeWidth={1.75} />
+                Open application
+              </a>
+            </Button>
+          ) : null}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={openPrefilled}
+            disabled={prefilling}
+            title="Opens the form in a browser here with your answers filled in. It never submits."
+          >
+            {prefilling ? (
+              <Loader2 className="size-3.5 animate-spin" strokeWidth={1.75} />
+            ) : (
+              <Wand2 className="size-3.5" strokeWidth={1.75} />
+            )}
+            Open pre-filled
           </Button>
           <Button size="sm" onClick={onApprove} disabled={resume.status === "approved"}>
             <CheckCircle2 className="size-3.5" strokeWidth={1.75} />
