@@ -8,12 +8,21 @@ export interface JobSearchResult {
   jobs: Job[];
   total: number;
   new: number;
+  /** How many jobs actually received full evidence-based scoring. */
+  scored?: number;
+  /**
+   * Jobs the backend set aside without scoring. Non-zero means the ranking is
+   * the best of what was evaluated, not the best of everything found — the UI
+   * must not present it as exhaustive.
+   */
+  setAside?: number;
 }
 
 interface LiveSearchResponse {
   jobs: Job[];
   total: number;
   scored: number;
+  setAside: number;
   sources: string[];
 }
 
@@ -34,7 +43,13 @@ export async function searchJobs(
     if (!res.ok) return res;
     return {
       ok: true,
-      data: { jobs: res.data.jobs, total: res.data.total, new: res.data.jobs.length },
+      data: {
+        jobs: res.data.jobs,
+        total: res.data.total,
+        new: res.data.jobs.length,
+        scored: res.data.scored,
+        setAside: res.data.setAside,
+      },
     };
   }
 

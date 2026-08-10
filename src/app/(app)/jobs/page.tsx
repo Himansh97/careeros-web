@@ -99,6 +99,9 @@ export default function JobsPage() {
 
   const notConnected = data?.ok === false && data.reason === "not_connected";
   const rawJobs = data?.ok ? data.data.jobs : [];
+  const total = data?.ok ? data.data.total : 0;
+  const scored = data?.ok ? (data.data.scored ?? data.data.jobs.length) : 0;
+  const setAside = data?.ok ? (data.data.setAside ?? 0) : 0;
   const jobs = sortJobs(rawJobs, sort).map((j) => ({ ...j, ...localOverrides[j.id] }));
 
   function handleSelect(job: Job) {
@@ -238,6 +241,24 @@ export default function JobsPage() {
       {/* Results + detail panel */}
       <div className="flex flex-1 gap-5 overflow-hidden">
         <div className="flex w-full flex-col gap-2 overflow-y-auto lg:w-[420px] lg:shrink-0">
+          {!isLoading && !notConnected && jobs.length > 0 && (
+            <p className="px-1 text-xs text-muted-foreground">
+              Showing {jobs.length} of {scored.toLocaleString()} scored
+              {setAside > 0 && (
+                <>
+                  {" "}
+                  · {setAside.toLocaleString()} of {total.toLocaleString()} not scored
+                  <span
+                    title="Scoring reads each full job description, so the least relevant titles are set aside rather than scored. Narrow your search to pull more of the pool into scoring."
+                    className="ml-1 cursor-help underline decoration-dotted"
+                  >
+                    why?
+                  </span>
+                </>
+              )}
+            </p>
+          )}
+
           {isLoading && (
             <div className="space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (
