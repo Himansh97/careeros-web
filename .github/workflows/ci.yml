@@ -1,0 +1,33 @@
+name: CI
+
+# Both checks pass locally today, so this encodes the existing bar rather than
+# raising a new one. They are worth gating on: the React Compiler makes several
+# real mistakes lint *errors* rather than warnings, and every runtime bug found
+# in this repo so far type-checked cleanly — so passing these is necessary, not
+# sufficient. Click the flow too.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint

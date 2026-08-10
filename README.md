@@ -1,3 +1,9 @@
+# careeros-web
+
+> **Part of CareerOS** — [careeros](https://github.com/Himansh97/careeros) (data + docs + state) · [careeros-api](https://github.com/Himansh97/careeros-api) (backend) · **careeros-web** (frontend)
+>
+> Current state: [`careeros/docs/STATE.md`](https://github.com/Himansh97/careeros/blob/main/docs/STATE.md)
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
