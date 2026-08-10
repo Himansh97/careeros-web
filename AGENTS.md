@@ -23,7 +23,7 @@ file, never `CLAUDE.md`.**
 ## Part of CareerOS
 
 | Repo | Owns |
-|---|---|
+| --- | --- |
 | [careeros](https://github.com/Himansh97/careeros) | Candidate data, docs, **`docs/STATE.md` — current state, read it first** |
 | [careeros-api](https://github.com/Himansh97/careeros-api) | FastAPI backend on :8000 |
 | **careeros-web** (this one) | Next.js 16 frontend, 19 routes |
