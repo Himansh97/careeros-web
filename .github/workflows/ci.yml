@@ -26,6 +26,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Next generates route/layout types into .next/types, and tsconfig
+      # includes them. A fresh checkout has no .next, so `tsc` fails on
+      # generated names like LayoutProps — types that exist on any machine
+      # where dev or build has been run. typegen produces them without paying
+      # for a full build.
+      - name: Generate Next.js route types
+        run: npx next typegen
+
       - name: Typecheck
         run: npx tsc --noEmit
 
