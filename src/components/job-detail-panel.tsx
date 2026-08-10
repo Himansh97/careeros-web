@@ -9,10 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { ScoreBadge } from "@/components/score-badge";
 import { MatchBreakdown } from "@/components/match-breakdown";
 import { formatSalary } from "@/lib/format";
+import { useTailoring } from "@/lib/hooks/use-tailoring";
 import type { Job } from "@/types/job";
 
 export function JobDetailPanel({ job }: { job: Job }) {
   const router = useRouter();
+  const { run: runTailoring, running, busy } = useTailoring(job.id);
   const salary = formatSalary(job.salary);
 
   return (
@@ -43,24 +45,43 @@ export function JobDetailPanel({ job }: { job: Job }) {
         <div className="mt-4 flex items-center gap-2">
           <Button
             size="sm"
-            onClick={() =>
-              typeof job.resumeScore === "number"
-                ? router.push(`/resume/${job.id}`)
-                : toast.info("Resume tailoring isn't connected yet — this will generate a job-specific resume version once wired up.")
-            }
+            disabled={busy}
+            onClick={async () => {
+              if (typeof job.resumeScore === "number") {
+                router.push(`/resume/${job.id}`);
+                return;
+              }
+              if (await runTailoring("resume")) {
+                toast.success("Resume tailored", {
+                  description: "Every bullet traces back to your evidence file.",
+                });
+                router.push(`/resume/${job.id}`);
+              }
+            }}
           >
             <FileText className="size-3.5" strokeWidth={1.75} />
-            {typeof job.resumeScore === "number" ? "View Tailored Resume" : "Tailor Resume"}
+            {running === "resume"
+              ? "Tailoring…"
+              : typeof job.resumeScore === "number"
+                ? "View Tailored Resume"
+                : "Tailor Resume"}
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={() =>
-              toast.info("Application prep isn't connected yet — this will fill and stage the application for your review.")
-            }
+            disabled={busy}
+            onClick={async () => {
+              if (await runTailoring("application")) {
+                toast.success("Application prepared", {
+                  description:
+                    "Resume, scorecard, and approval are staged. CareerOS never submits for you.",
+                });
+                router.push(`/applications/app_${job.id}`);
+              }
+            }}
           >
             <Send className="size-3.5" strokeWidth={1.75} />
-            Prepare Application
+            {running === "application" ? "Preparing…" : "Prepare Application"}
           </Button>
         </div>
       </div>
