@@ -1,15 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, MapPin, AlertCircle, UserCheck, ArrowRight } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, AlertCircle, UserCheck, ArrowRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ScoreBadge } from "@/components/score-badge";
+import { MessageCard } from "@/components/recruiter-messages/message-card";
 import { getApplication, advanceApplication, nextStatus } from "@/lib/api/applications";
+import { listRecruiterMessages } from "@/lib/api/recruiter-messages";
 import { pipelineColumns } from "@/types/application";
 import { formatRelativeTime } from "@/lib/format";
 
@@ -22,6 +25,10 @@ export default function ApplicationDetailPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["applications", "detail", params.applicationId],
     queryFn: () => getApplication(params.applicationId),
+  });
+  const recruiterMessagesQuery = useQuery({
+    queryKey: ["recruiter-messages", params.applicationId],
+    queryFn: () => listRecruiterMessages(params.applicationId),
   });
 
   if (isLoading) {
@@ -61,6 +68,13 @@ export default function ApplicationDetailPage() {
 
   const app = data.data;
   const next = nextStatus(app.status);
+  const recruiterMessages = recruiterMessagesQuery.data?.ok
+    ? [...recruiterMessagesQuery.data.data]
+        .sort((a, b) => Date.parse(b.receivedAt) - Date.parse(a.receivedAt))
+        .slice(0, 5)
+    : [];
+  const recruiterMessagesFailed =
+    recruiterMessagesQuery.isError || recruiterMessagesQuery.data?.ok === false;
 
   return (
     <div className="flex flex-1 flex-col gap-5">
@@ -128,6 +142,70 @@ export default function ApplicationDetailPage() {
           <span className="font-medium text-foreground/70">Next action: </span>
           {app.nextAction}
         </p>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-medium text-foreground">Recruiter messages</h2>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/recruiter-messages">View all recruiter messages</Link>
+          </Button>
+        </div>
+
+        {recruiterMessagesQuery.isLoading && (
+          <div className="space-y-3" aria-label="Loading recruiter messages" aria-busy="true">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div key={index} className="rounded-xl border border-border p-4">
+                <Skeleton className="h-4 w-48 max-w-full" />
+                <Skeleton className="mt-3 h-5 w-72 max-w-[85%]" />
+                <Skeleton className="mt-4 h-4 w-full" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!recruiterMessagesQuery.isLoading && recruiterMessagesFailed && (
+          <div
+            role="status"
+            className="flex flex-col gap-3 rounded-lg border border-border bg-muted/40 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="flex items-start gap-2 text-muted-foreground">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
+              <div>
+                <p className="font-medium text-foreground">Recruiter messages unavailable</p>
+                <p>Your application details are still available. Try the messages again in a moment.</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={() => void recruiterMessagesQuery.refetch()}
+            >
+              <RefreshCw />
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {!recruiterMessagesQuery.isLoading && recruiterMessagesQuery.data?.ok && recruiterMessages.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No recruiter replies detected for this application.
+          </p>
+        )}
+
+        {!recruiterMessagesQuery.isLoading && recruiterMessages.length > 0 && (
+          <div className="space-y-3">
+            {recruiterMessages.map((message) => (
+              <MessageCard
+                key={message.gmailMessageId}
+                message={message}
+                company={app.company.name}
+                role={app.title}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-border bg-card p-4">
