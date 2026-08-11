@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBadge } from "@/components/score-badge";
 import { API_URL, apiFetch, isLiveApi } from "@/lib/api/client";
+import { ResumePreview } from "@/components/resume/resume-preview";
 import type { ResumeVersion } from "@/types/resume";
 
 const statusLabel: Record<ResumeVersion["status"], string> = {
@@ -70,8 +71,11 @@ export function ResumeHeader({ resume, onApprove, applyUrl }: ResumeHeaderProps)
     }
     // The API sets Content-Disposition, so an anchor click downloads the file
     // with the right filename without buffering it in memory here.
+    // `download=1` is required: PDFs are served inline by default so the
+    // preview can render one in an iframe, and without the flag this button
+    // would open the file rather than save it.
     const a = document.createElement("a");
-    a.href = `${API_URL}/api/jobs/${encodeURIComponent(resume.jobId)}/resume.${fmt}`;
+    a.href = `${API_URL}/api/jobs/${encodeURIComponent(resume.jobId)}/resume.${fmt}?download=1`;
     a.rel = "noreferrer";
     document.body.appendChild(a);
     a.click();
@@ -100,6 +104,11 @@ export function ResumeHeader({ resume, onApprove, applyUrl }: ResumeHeaderProps)
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <ResumePreview
+            jobId={resume.jobId}
+            company={resume.companyName}
+            role={resume.jobTitle}
+          />
           <Button size="sm" variant="outline" onClick={() => download("pdf")}>
             <FileDown className="size-3.5" strokeWidth={1.75} />
             Export PDF

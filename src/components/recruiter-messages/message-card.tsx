@@ -74,7 +74,14 @@ export function MessageCard({
   role,
   applicationLookupState,
 }: MessageCardProps) {
-  const status = message.draft ? statusDetails[message.draft.status] : null;
+  // Sending outranks the draft status. Once a reply has gone out, "Awaiting
+  // approval" is not merely stale — it invites the candidate to send twice.
+  const sentAt = message.draft?.sentAt ?? null;
+  const status = sentAt
+    ? { label: "Replied", className: "border-success/30 bg-success/10 text-success", icon: CheckCircle2 }
+    : message.draft
+      ? statusDetails[message.draft.status]
+      : null;
   const StatusIcon = status?.icon ?? Mail;
   const received = new Date(message.receivedAt);
   const hasLinkedApplication = message.applicationId !== null;

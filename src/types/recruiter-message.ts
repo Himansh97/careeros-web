@@ -22,6 +22,15 @@ export interface RecruiterReplyDraft {
   contentFingerprint: string | null;
   lastErrorCode: string | null;
   lastErrorMessage: string | null;
+  /**
+   * When the candidate actually sent this reply, from Gmail.
+   *
+   * Not a `status` value: CareerOS never sends, so this always arrives from
+   * outside, and it can happen from any state — the GitLab reply went out
+   * while the draft still sat at `approved`, with no Gmail draft ever created.
+   */
+  sentAt: string | null;
+  gmailSentMessageId: string | null;
 }
 
 export interface RecruiterMessage {
@@ -46,5 +55,5 @@ export type RecruiterDraftPatch = Partial<
 /** Draft fields returned by candidate-review mutation endpoints. */
 export type RecruiterReplyDraftReview = Omit<
   RecruiterReplyDraft,
-  "gmailMessageId" | "gmailDraftId"
+  "gmailMessageId" | "gmailDraftId" | "sentAt" | "gmailSentMessageId"
 >;

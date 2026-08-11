@@ -38,12 +38,29 @@ export interface RecruiterAuditCategory {
 
 export type RecruiterDecision = "SHORTLIST" | "REVIEW" | "REJECT";
 
+/**
+ * Why a resume is under target, and whether tailoring can close it.
+ *
+ * Absent once the resume reaches the target. The distinction that matters is
+ * `evidenceBound` vs `tailoringBound`: selection and phrasing are ours to
+ * improve, requirement coverage is a fact about what the candidate has done.
+ */
+export interface ResumeShortfall {
+  target: number;
+  short: number;
+  evidenceBound: number;
+  tailoringBound: number;
+  missing: string[];
+  summary: string;
+}
+
 export interface RecruiterAudit {
   overall: number;
   decision: RecruiterDecision;
   categories: RecruiterAuditCategory[];
   whatWorks: string[];
   concerns: string[];
+  shortfall?: ResumeShortfall | null;
 }
 
 export interface ResumeVersion {

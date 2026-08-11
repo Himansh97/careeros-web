@@ -22,6 +22,24 @@ export function RecruiterAuditPanel({ audit }: { audit: RecruiterAudit }) {
         </Badge>
       </div>
 
+      {/* Says whether re-tailoring can close the gap, or whether only new
+          evidence can. Without this the score is a number to be disappointed
+          by rather than one to act on. */}
+      {audit.shortfall && (
+        <div
+          className={`mt-3 rounded-md border p-2.5 text-xs ${
+            audit.shortfall.evidenceBound >= audit.shortfall.tailoringBound
+              ? "border-warning/30 bg-warning/10 text-warning"
+              : "border-info/30 bg-info/10 text-info"
+          }`}
+        >
+          <p className="font-medium">
+            {audit.shortfall.short} short of {audit.shortfall.target}
+          </p>
+          <p className="mt-0.5 opacity-90">{audit.shortfall.summary}</p>
+        </div>
+      )}
+
       <div className="mt-4 space-y-2.5">
         {audit.categories.map((cat) => (
           <div key={cat.key} className="space-y-1">
