@@ -2,7 +2,6 @@ import { apiFetch, isLiveApi, type ApiResult } from "@/lib/api/client";
 import type {
   RecruiterDraftPatch,
   RecruiterMessage,
-  RecruiterReplyDraft,
   RecruiterReplyDraftReview,
 } from "@/types/recruiter-message";
 
@@ -31,7 +30,7 @@ export async function getRecruiterMessage(
 export async function updateRecruiterDraft(
   id: string,
   patch: RecruiterDraftPatch
-): Promise<ApiResult<RecruiterReplyDraft>> {
+): Promise<ApiResult<RecruiterReplyDraftReview>> {
   if (!isLiveApi()) return { ok: false, reason: "not_connected" };
   return apiFetch(`/api/recruiter-messages/${encodeURIComponent(id)}/draft`, {
     method: "PUT",
