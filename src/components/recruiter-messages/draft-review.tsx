@@ -55,25 +55,25 @@ const statusDetails: Record<
   awaiting_approval: {
     label: "Awaiting approval",
     description: "Review every field. Nothing goes to Gmail until you explicitly approve this draft.",
-    className: "border-amber-200 bg-amber-50/70 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200",
+    className: "border-warning/30 bg-warning/10 text-warning",
     icon: ShieldCheck,
   },
   approved: {
     label: "Approved",
     description: "Approved for draft creation. No email has been sent.",
-    className: "border-blue-200 bg-blue-50/70 text-blue-900 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200",
+    className: "border-info/30 bg-info/10 text-info",
     icon: FileCheck2,
   },
   creating: {
     label: "Creating draft",
     description: "CareerOS is creating an unsent draft in Gmail. No email has been sent.",
-    className: "border-blue-200 bg-blue-50/70 text-blue-900 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200",
+    className: "border-info/30 bg-info/10 text-info",
     icon: LoaderCircle,
   },
   created: {
     label: "Gmail draft ready",
     description: "The unsent Gmail draft is ready for your final review in Gmail.",
-    className: "border-emerald-200 bg-emerald-50/70 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200",
+    className: "border-success/30 bg-success/10 text-success",
     icon: CheckCircle2,
   },
   dismissed: {

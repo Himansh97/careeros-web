@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -14,6 +14,7 @@ import {
   CalendarCheck2,
   Bot,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,16 +23,30 @@ import { MetricCard } from "@/components/metric-card";
 import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
 import { searchJobs } from "@/lib/api/jobs";
+import { useAutopilot } from "@/lib/hooks/use-autopilot";
+import { useJobFlags } from "@/lib/hooks/use-job-flags";
+import { formatRelativeTime } from "@/lib/format";
 import { subscribeApplications, getApplicationsSnapshot } from "@/lib/api/applications";
 import { subscribeApprovals, getApprovalsSnapshot } from "@/lib/api/approvals";
 import type { ApplicationRecord } from "@/types/application";
 import type { ApprovalItem } from "@/types/approval";
 
+/** "Good morning" was hardcoded, so it greeted the user that way at midnight. */
+function greeting(hour: number): string {
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function DashboardPage() {
   const router = useRouter();
+  const { run: runAutopilot, running, busy: autopilotBusy, lastRunAt } = useAutopilot();
+  const { toggleSave, dismiss } = useJobFlags();
 
+  // Same key as the jobs page: this is the identical unfiltered search, and
+  // under its own key it ran the whole ~7,400-job pipeline a second time.
   const { data, isLoading } = useQuery({
-    queryKey: ["jobs", "search", "dashboard"],
+    queryKey: ["jobs", "search", {}],
     queryFn: () => searchJobs({}),
   });
 
@@ -47,7 +62,7 @@ export default function DashboardPage() {
   );
 
   const notConnected = data?.ok === false && data.reason === "not_connected";
-  const jobs = data?.ok ? data.data.jobs : [];
+  const jobs = (data?.ok ? data.data.jobs : []).filter((j) => !j.dismissed);
   const strongMatches = jobs.filter((j) => (j.rawFitScore ?? 0) >= 80).length;
   const pendingApprovals = approvals.filter((a) => a.status === "pending").length;
   const interviews = applications.filter((a) => a.status === "interview").length;
@@ -70,7 +85,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-1 flex-col gap-6">
       <PageHeader
-        title="Good morning, Himanshu"
+        title={`${greeting(new Date().getHours())}, Himanshu`}
         description={
           notConnected
             ? "No data source is connected — nothing below reflects real opportunities or applications."
@@ -83,16 +98,13 @@ export default function DashboardPage() {
             <Button variant="outline" size="sm" onClick={() => router.push("/approvals")}>
               Review Matches
             </Button>
-            <Button
-              size="sm"
-              onClick={() =>
-                toast.info(
-                  "Autopilot isn't connected yet — it'll run discovery, scoring, and tailoring automatically once wired up."
-                )
-              }
-            >
-              <Bot className="size-3.5" strokeWidth={1.75} />
-              Run Autopilot
+            <Button size="sm" onClick={() => void runAutopilot()} disabled={running}>
+              {running ? (
+                <Loader2 className="size-3.5 animate-spin" strokeWidth={1.75} />
+              ) : (
+                <Bot className="size-3.5" strokeWidth={1.75} />
+              )}
+              {running ? "Running…" : "Run Autopilot"}
             </Button>
           </div>
         }
@@ -104,16 +116,30 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* This pill read "Idle" unconditionally, including mid-run. It now
+          reflects GET /api/automation. */}
       <div className="rounded-lg border border-border bg-card px-4 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="relative flex size-2">
-              <span className="relative inline-flex size-2 rounded-full bg-muted-foreground/50" />
+              {autopilotBusy && (
+                <span className="absolute inline-flex size-2 animate-ping rounded-full bg-success/70" />
+              )}
+              <span
+                className={`relative inline-flex size-2 rounded-full ${
+                  autopilotBusy ? "bg-success" : "bg-muted-foreground/50"
+                }`}
+              />
             </span>
             <span className="text-sm font-medium text-foreground">Autopilot</span>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-              Idle
+              {autopilotBusy ? "Running" : "Idle"}
             </span>
+            {lastRunAt && !autopilotBusy && (
+              <span className="text-xs text-muted-foreground">
+                last run {formatRelativeTime(lastRunAt)}
+              </span>
+            )}
           </div>
           <Button variant="ghost" size="sm" onClick={() => router.push("/automations")}>
             Configure
@@ -159,8 +185,8 @@ export default function DashboardPage() {
                 key={job.id}
                 job={job}
                 onSelect={(j) => router.push(`/jobs/${j.id}`)}
-                onToggleSave={() => toast.success("Job saved")}
-                onDismiss={() => toast("Job dismissed")}
+                onToggleSave={() => void toggleSave(job)}
+                onDismiss={() => void dismiss(job)}
               />
             ))}
           </div>

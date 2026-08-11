@@ -5,7 +5,12 @@ import { AlertCircle, Lightbulb } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
-import { subscribeApplications, getApplicationsSnapshot } from "@/lib/api/applications";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  subscribeApplications,
+  getApplicationsSnapshot,
+  getApplicationsLoadState,
+} from "@/lib/api/applications";
 import type { ApplicationRecord } from "@/types/application";
 
 // A data source exists if either the live backend or the mock layer is on.
@@ -59,6 +64,41 @@ export default function AnalyticsPage() {
     getApplicationsSnapshot,
     () => [] as ApplicationRecord[]
   );
+  // A funnel of zeroes is a claim about the pipeline. Only make it when the
+  // pipeline was actually read.
+  const loadState = React.useSyncExternalStore(
+    subscribeApplications,
+    getApplicationsLoadState,
+    () => "loading" as const
+  );
+
+  if (hasDataSource() && loadState === "loading") {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Analytics" description="Funnel conversion and response rates." />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (hasDataSource() && loadState === "error") {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Analytics" description="The pipeline couldn't be loaded." />
+        <EmptyState
+          icon={AlertCircle}
+          title="Couldn't reach the CareerOS API"
+          description="Showing a funnel of zeroes here would misreport your pipeline, so nothing is shown. Start the backend on port 8000 and reload."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
 
   if (!hasDataSource()) {
     return (

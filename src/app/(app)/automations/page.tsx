@@ -21,10 +21,10 @@ import { PipelineNodeCard } from "@/components/automation/pipeline-node";
 import { isLiveApi } from "@/lib/api/client";
 import {
   getAutomation,
-  runAutopilot,
   saveAutomationRules,
   type AutomationRules,
 } from "@/lib/api/ops";
+import { useAutopilot } from "@/lib/hooks/use-autopilot";
 import { formatRelativeTime } from "@/lib/format";
 
 const NUMERIC_RULES: { key: keyof AutomationRules; label: string; hint?: string }[] = [
@@ -39,31 +39,13 @@ const NUMERIC_RULES: { key: keyof AutomationRules; label: string; hint?: string 
 export default function AutomationsPage() {
   const live = isLiveApi();
   const qc = useQueryClient();
-  const [running, setRunning] = React.useState(false);
+  const { run: handleRun, running } = useAutopilot();
 
   const { data, isLoading } = useQuery({
     queryKey: ["automation"],
     queryFn: getAutomation,
     enabled: live,
   });
-
-  async function handleRun() {
-    setRunning(true);
-    toast.info("Autopilot started — discovering and scoring live postings…");
-    const res = await runAutopilot();
-    setRunning(false);
-    if (res.ok) {
-      const s = res.data.stats ?? {};
-      toast.success(
-        `Run complete — ${s.tailored ?? 0} resumes tailored, ${s.queuedForApproval ?? 0} queued for your approval`
-      );
-      qc.invalidateQueries({ queryKey: ["automation"] });
-      qc.invalidateQueries({ queryKey: ["applications"] });
-      qc.invalidateQueries({ queryKey: ["approvals"] });
-    } else {
-      toast.error("Autopilot run failed");
-    }
-  }
 
   async function updateRule(key: keyof AutomationRules, value: string | number) {
     const res = await saveAutomationRules({ [key]: value } as Partial<AutomationRules>);

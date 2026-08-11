@@ -143,7 +143,7 @@ export function ImportByUrl() {
       {problem && problem.kind !== "job" ? (
         <div className="mt-4 border-t pt-4">
           <p className="flex items-start gap-2 text-sm">
-            <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
+            <ShieldAlert className="mt-0.5 size-4 shrink-0 text-warning" />
             <span>
               {problem.kind === "blocked" ? (
                 <>

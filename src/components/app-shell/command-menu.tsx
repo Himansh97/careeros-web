@@ -2,16 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import {
-  Search,
-  Bot,
-  Pause,
-  FileText,
-  ShieldCheck,
-  Plus,
-  Download,
-} from "lucide-react";
+import { Search, Bot, FileText, ShieldCheck, Plus } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -22,52 +13,39 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { allNavItems } from "@/config/nav";
+import { useAutopilot } from "@/lib/hooks/use-autopilot";
 
 interface CommandMenuProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const quickCommands = [
-  {
-    title: "Search new jobs",
-    icon: Search,
-    run: (nav: (href: string) => void) => nav("/jobs"),
-  },
-  {
-    title: "Run Autopilot",
-    icon: Bot,
-    run: () => toast.info("Autopilot isn't connected yet — this will start a discovery + tailoring run once automation is wired up."),
-  },
-  {
-    title: "Pause automation",
-    icon: Pause,
-    run: () => toast.info("No automation is running yet, so there's nothing to pause."),
-  },
-  {
-    title: "Tailor resume",
-    icon: FileText,
-    run: (nav: (href: string) => void) => nav("/resume"),
-  },
-  {
-    title: "Review approvals",
-    icon: ShieldCheck,
-    run: (nav: (href: string) => void) => nav("/approvals"),
-  },
-  {
-    title: "Add job manually",
-    icon: Plus,
-    run: (nav: (href: string) => void) => nav("/jobs"),
-  },
-  {
-    title: "Export daily report",
-    icon: Download,
-    run: () => toast.info("Reporting isn't connected yet — analytics data doesn't exist until real applications run through the pipeline."),
-  },
+/**
+ * Every command here does something.
+ *
+ * "Pause automation" and "Export daily report" used to sit in this list and
+ * only ever explained that they were not implemented — a palette entry that
+ * exists to apologise is worse than no entry, because it still costs a search
+ * result and a keystroke. They are gone until there is something behind them.
+ */
+interface QuickCommand {
+  title: string;
+  icon: typeof Search;
+  href?: string;
+  action?: "autopilot";
+}
+
+const quickCommands: QuickCommand[] = [
+  { title: "Search new jobs", icon: Search, href: "/jobs" },
+  { title: "Run Autopilot", icon: Bot, action: "autopilot" },
+  { title: "Tailor resume", icon: FileText, href: "/resume" },
+  { title: "Review approvals", icon: ShieldCheck, href: "/approvals" },
+  { title: "Add job manually", icon: Plus, href: "/jobs" },
 ];
 
 export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const router = useRouter();
+  const { run: runAutopilot } = useAutopilot();
 
   const navigate = React.useCallback(
     (href: string) => {
@@ -75,6 +53,15 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
       router.push(href);
     },
     [onOpenChange, router]
+  );
+
+  const execute = React.useCallback(
+    (cmd: QuickCommand) => {
+      onOpenChange(false);
+      if (cmd.href) navigate(cmd.href);
+      else if (cmd.action === "autopilot") void runAutopilot();
+    },
+    [navigate, onOpenChange, runAutopilot]
   );
 
   return (
@@ -100,10 +87,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             <CommandItem
               key={cmd.title}
               value={cmd.title}
-              onSelect={() => {
-                onOpenChange(false);
-                cmd.run(navigate);
-              }}
+              onSelect={() => execute(cmd)}
             >
               <cmd.icon />
               <span>{cmd.title}</span>

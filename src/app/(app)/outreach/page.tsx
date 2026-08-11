@@ -64,6 +64,21 @@ export default function OutreachPage() {
     );
   }
 
+
+  if (data && !data.ok) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Recruiter Outreach" description="This page couldn't be loaded." />
+        <EmptyState
+          icon={AlertCircle}
+          title="Couldn't reach the CareerOS API"
+          description="Your drafts are still on the server. Start the backend on port 8000 and reload."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
   const records = data?.ok ? data.data.outreach : [];
 
   async function update(id: string, action: "sent" | "replied") {

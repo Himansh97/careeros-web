@@ -53,6 +53,21 @@ export default function FollowUpsPage() {
     );
   }
 
+
+  if (data && !data.ok) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Follow-ups" description="This page couldn't be loaded." />
+        <EmptyState
+          icon={AlertCircle}
+          title="Couldn't reach the CareerOS API"
+          description="An empty list here would read as nothing being due. Start the backend on port 8000 and reload."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
   const items = data?.ok ? data.data.followUps : [];
 
   return (

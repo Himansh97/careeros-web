@@ -9,6 +9,27 @@ const listeners = new Set<() => void>();
 let cache: ApplicationRecord[] | null = null;
 let fetched = false;
 
+/**
+ * Whether the first load has happened, and whether it worked.
+ *
+ * `refreshApplications` used to drop failures on the floor (`if (res.ok)`), so
+ * an unreachable backend left the cache at `[]` and the page rendered
+ * "No applications yet" — the same screen a genuinely empty pipeline produces.
+ * Pages read this to tell those two apart.
+ */
+export type LoadState = "loading" | "ready" | "error";
+let loadState: LoadState = isLiveApi() ? "loading" : "ready";
+
+export function getApplicationsLoadState(): LoadState {
+  return loadState;
+}
+
+function setLoadState(next: LoadState) {
+  if (loadState === next) return;
+  loadState = next;
+  listeners.forEach((l) => l());
+}
+
 function read(): ApplicationRecord[] {
   if (typeof window === "undefined") return [];
   // Live mode is served by the backend, not this local store.
@@ -54,7 +75,12 @@ export function getApplicationsSnapshot(): ApplicationRecord[] {
 export async function refreshApplications(): Promise<void> {
   if (!isLiveApi()) return;
   const res = await apiFetch<{ applications: ApplicationRecord[] }>("/api/applications");
-  if (res.ok) write(res.data.applications);
+  if (res.ok) {
+    write(res.data.applications);
+    setLoadState("ready");
+  } else {
+    setLoadState("error");
+  }
 }
 
 export async function listApplications(): Promise<ApiResult<ApplicationRecord[]>> {

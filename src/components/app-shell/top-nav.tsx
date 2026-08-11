@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Search, Bell, Plus, Bot, Sun, Moon, Laptop } from "lucide-react";
+import { Search, Bell, Plus, Bot, Sun, Moon, Laptop, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
@@ -17,10 +16,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CommandMenu } from "@/components/app-shell/command-menu";
+import { useAutopilot } from "@/lib/hooks/use-autopilot";
 
 export function TopNav() {
   const [commandOpen, setCommandOpen] = React.useState(false);
   const router = useRouter();
+  const { run: runAutopilot, running, busy } = useAutopilot();
   const { theme, setTheme } = useTheme();
 
   React.useEffect(() => {
@@ -52,13 +53,20 @@ export function TopNav() {
         </button>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Automation status pill */}
+          {/* Automation status pill — was static "Idle", including mid-run. */}
           <div className="hidden items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground sm:flex">
             <span className="relative flex size-1.5">
-              <span className="relative inline-flex size-1.5 rounded-full bg-muted-foreground/60" />
+              {busy && (
+                <span className="absolute inline-flex size-1.5 animate-ping rounded-full bg-success/70" />
+              )}
+              <span
+                className={`relative inline-flex size-1.5 rounded-full ${
+                  busy ? "bg-success" : "bg-muted-foreground/60"
+                }`}
+              />
             </span>
             <Bot className="size-3.5" strokeWidth={1.75} />
-            Idle
+            {busy ? "Running" : "Idle"}
           </div>
 
           {/* Notifications */}
@@ -89,16 +97,15 @@ export function TopNav() {
           </Button>
 
           {/* Run autopilot */}
-          <Button
-            size="sm"
-            onClick={() =>
-              toast.info(
-                "Autopilot isn't connected yet — this will kick off discovery + tailoring once automation is wired up."
-              )
-            }
-          >
-            <Bot className="size-3.5" strokeWidth={1.75} />
-            Run Autopilot
+          <Button size="sm" onClick={() => void runAutopilot()} disabled={running}>
+            {running ? (
+              <Loader2 className="size-3.5 animate-spin" strokeWidth={1.75} />
+            ) : (
+              <Bot className="size-3.5" strokeWidth={1.75} />
+            )}
+            <span className="hidden sm:inline">
+              {running ? "Running…" : "Run Autopilot"}
+            </span>
           </Button>
 
           {/* User menu */}

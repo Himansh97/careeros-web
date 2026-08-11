@@ -30,22 +30,22 @@ const statusDetails: Record<
 > = {
   awaiting_approval: {
     label: "Awaiting approval",
-    className: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300",
+    className: "border-warning/30 bg-warning/10 text-warning",
     icon: Clock3,
   },
   approved: {
     label: "Approved",
-    className: "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300",
+    className: "border-info/30 bg-info/10 text-info",
     icon: FileCheck2,
   },
   creating: {
     label: "Creating draft",
-    className: "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300",
+    className: "border-info/30 bg-info/10 text-info",
     icon: Clock3,
   },
   created: {
     label: "Draft ready",
-    className: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300",
+    className: "border-success/30 bg-success/10 text-success",
     icon: CheckCircle2,
   },
   dismissed: {

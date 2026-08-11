@@ -41,6 +41,21 @@ export default function ContactsPage() {
       );
     }
 
+
+    if (data && !data.ok) {
+      return (
+        <div className="flex flex-1 flex-col gap-6">
+          <PageHeader title="Contacts" description="This page couldn't be loaded." />
+          <EmptyState
+            icon={AlertCircle}
+            title="Couldn't reach the CareerOS API"
+            description="Your contacts are still on the server. Start the backend on port 8000 and reload."
+            className="flex-1"
+          />
+        </div>
+      );
+    }
+
     const contacts = data?.ok ? data.data.contacts : [];
     const lookupEnabled = data?.ok ? data.data.lookupEnabled : false;
 

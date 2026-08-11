@@ -8,6 +8,20 @@ const listeners = new Set<() => void>();
 let cache: ApprovalItem[] | null = null;
 let fetched = false;
 
+/** See the note in applications.ts — a failed load must not read as "empty". */
+export type LoadState = "loading" | "ready" | "error";
+let loadState: LoadState = isLiveApi() ? "loading" : "ready";
+
+export function getApprovalsLoadState(): LoadState {
+  return loadState;
+}
+
+function setLoadState(next: LoadState) {
+  if (loadState === next) return;
+  loadState = next;
+  listeners.forEach((l) => l());
+}
+
 function read(): ApprovalItem[] {
   if (typeof window === "undefined") return [];
   if (isLiveApi()) return cache ?? [];
@@ -51,7 +65,12 @@ export function getApprovalsSnapshot(): ApprovalItem[] {
 export async function refreshApprovals(): Promise<void> {
   if (!isLiveApi()) return;
   const res = await apiFetch<{ approvals: ApprovalItem[] }>("/api/approvals");
-  if (res.ok) write(res.data.approvals);
+  if (res.ok) {
+    write(res.data.approvals);
+    setLoadState("ready");
+  } else {
+    setLoadState("error");
+  }
 }
 
 export async function listApprovals(): Promise<ApiResult<ApprovalItem[]>> {

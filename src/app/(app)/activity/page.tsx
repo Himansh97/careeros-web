@@ -5,7 +5,12 @@ import Link from "next/link";
 import { AlertCircle, Activity as ActivityIcon } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
-import { subscribeApplications, getApplicationsSnapshot } from "@/lib/api/applications";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  subscribeApplications,
+  getApplicationsSnapshot,
+  getApplicationsLoadState,
+} from "@/lib/api/applications";
 import { formatRelativeTime } from "@/lib/format";
 import type { ApplicationRecord } from "@/types/application";
 
@@ -21,6 +26,40 @@ export default function ActivityPage() {
     getApplicationsSnapshot,
     () => [] as ApplicationRecord[]
   );
+  // An audit log that silently shows nothing when it cannot be read is worse
+  // than one that says it cannot be read.
+  const loadState = React.useSyncExternalStore(
+    subscribeApplications,
+    getApplicationsLoadState,
+    () => "loading" as const
+  );
+
+  if (hasDataSource() && loadState === "loading") {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Activity" description="Timestamped audit log." />
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (hasDataSource() && loadState === "error") {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader title="Activity" description="The audit log couldn't be loaded." />
+        <EmptyState
+          icon={AlertCircle}
+          title="Couldn't reach the CareerOS API"
+          description="This is not an empty log — it could not be read. Start the backend on port 8000 and reload."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
 
   if (!hasDataSource()) {
     return (

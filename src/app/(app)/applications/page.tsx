@@ -6,9 +6,14 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BoardView } from "@/components/applications/board-view";
 import { TableView } from "@/components/applications/table-view";
-import { subscribeApplications, getApplicationsSnapshot } from "@/lib/api/applications";
+import {
+  subscribeApplications,
+  getApplicationsSnapshot,
+  getApplicationsLoadState,
+} from "@/lib/api/applications";
 import type { ApplicationRecord } from "@/types/application";
 
 // A data source exists if either the live backend or the mock layer is on.
@@ -17,6 +22,18 @@ const hasDataSource = () =>
     ? true
     : process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
+const DESCRIPTION =
+  "Track every application from qualified through offer, in board or table view.";
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-1 flex-col gap-6">
+      <PageHeader title="Applications" description={DESCRIPTION} />
+      {children}
+    </div>
+  );
+}
+
 export default function ApplicationsPage() {
   const [view, setView] = React.useState<"board" | "table">("board");
   const applications = React.useSyncExternalStore(
@@ -24,38 +41,62 @@ export default function ApplicationsPage() {
     getApplicationsSnapshot,
     () => [] as ApplicationRecord[]
   );
+  // Without this, a backend that is down looks exactly like an empty pipeline.
+  const loadState = React.useSyncExternalStore(
+    subscribeApplications,
+    getApplicationsLoadState,
+    () => "loading" as const
+  );
 
   if (!hasDataSource()) {
     return (
-      <div className="flex flex-1 flex-col gap-6">
-        <PageHeader
-          title="Applications"
-          description="Track every application from qualified through offer, in board or table view."
-        />
+      <Shell>
         <EmptyState
           icon={AlertCircle}
           title="Applications aren't connected"
           description="Set NEXT_PUBLIC_USE_MOCK_DATA=true to preview this page with mock data."
           className="flex-1"
         />
-      </div>
+      </Shell>
+    );
+  }
+
+  if (loadState === "loading") {
+    return (
+      <Shell>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+        <Skeleton className="h-72 w-full" />
+      </Shell>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <Shell>
+        <EmptyState
+          icon={AlertCircle}
+          title="Couldn't reach the CareerOS API"
+          description="This is a connection problem, not an empty pipeline — your applications are still on the server. Start the backend on port 8000 and reload."
+          className="flex-1"
+        />
+      </Shell>
     );
   }
 
   if (applications.length === 0) {
     return (
-      <div className="flex flex-1 flex-col gap-6">
-        <PageHeader
-          title="Applications"
-          description="Track every application from qualified through offer, in board or table view."
-        />
+      <Shell>
         <EmptyState
           icon={Briefcase}
           title="No applications yet"
           description="The strongest jobs you approve for tailoring will show up here as they move through the pipeline."
           className="flex-1"
         />
-      </div>
+      </Shell>
     );
   }
 

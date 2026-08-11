@@ -9,10 +9,15 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { ApprovalCard } from "@/components/approvals/approval-card";
-import { subscribeApprovals, getApprovalsSnapshot } from "@/lib/api/approvals";
+import {
+  subscribeApprovals,
+  getApprovalsSnapshot,
+  getApprovalsLoadState,
+} from "@/lib/api/approvals";
 import type { ApprovalItem, ApprovalKind } from "@/types/approval";
 
 // A data source exists if either the live backend or the mock layer is on.
@@ -34,6 +39,13 @@ export default function ApprovalsPage() {
     getApprovalsSnapshot,
     () => [] as ApprovalItem[]
   );
+  // "You're all caught up" is a dangerous thing to say when the truth is that
+  // the queue could not be loaded — the user would stop checking.
+  const loadState = React.useSyncExternalStore(
+    subscribeApprovals,
+    getApprovalsLoadState,
+    () => "loading" as const
+  );
 
   if (!hasDataSource()) {
     return (
@@ -46,6 +58,39 @@ export default function ApprovalsPage() {
           icon={AlertCircle}
           title="Approval Center isn't connected"
           description="Set NEXT_PUBLIC_USE_MOCK_DATA=true to preview this page with mock data."
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
+  if (loadState === "loading") {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader
+          title="Needs Your Attention"
+          description="Applications, outreach, and sensitive questions that require your review before anything goes out."
+        />
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <PageHeader
+          title="Needs Your Attention"
+          description="The approval queue couldn't be loaded."
+        />
+        <EmptyState
+          icon={AlertCircle}
+          title="Couldn't reach the CareerOS API"
+          description="Don't read this as an empty queue — items may be waiting. Start the backend on port 8000 and reload."
           className="flex-1"
         />
       </div>

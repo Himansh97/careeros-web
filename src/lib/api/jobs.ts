@@ -73,6 +73,45 @@ export async function getJob(id: string): Promise<ApiResult<Job>> {
   return { ok: true, data: job };
 }
 
+export interface JobFlags {
+  jobId: string;
+  saved: boolean;
+  dismissed: boolean;
+}
+
+/**
+ * Persist "saved" / "dismissed" for a job.
+ *
+ * These used to be component state on the jobs page, so the toast said "Job
+ * saved" while the flag lived only until the next navigation. They are now
+ * rows in `job_flags`, and the backend drops dismissed postings before the
+ * scoring budget is spent rather than after.
+ *
+ * Both take the desired state rather than toggling, so an optimistic double
+ * click cannot land on the wrong value.
+ */
+export async function setJobSaved(
+  id: string,
+  value: boolean
+): Promise<ApiResult<JobFlags>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch<JobFlags>(`/api/jobs/${encodeURIComponent(id)}/save`, {
+    method: "POST",
+    body: JSON.stringify({ value }),
+  });
+}
+
+export async function setJobDismissed(
+  id: string,
+  value: boolean
+): Promise<ApiResult<JobFlags>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch<JobFlags>(`/api/jobs/${encodeURIComponent(id)}/dismiss`, {
+    method: "POST",
+    body: JSON.stringify({ value }),
+  });
+}
+
 /**
  * Outcome of pasting a posting link.
  *

@@ -53,7 +53,7 @@ export function ResumeBullet({ bullet, mode, onSave, onRevert }: ResumeBulletPro
 
   if (mode === "side-by-side" && changed) {
     return (
-      <li className="grid grid-cols-2 gap-3 rounded-md bg-accent/40 p-2">
+      <li className="grid grid-cols-1 gap-3 rounded-md bg-accent/40 p-2 sm:grid-cols-2">
         <div className="text-xs text-muted-foreground line-through decoration-muted-foreground/40">
           {bullet.originalText ?? <span className="italic">(new)</span>}
         </div>
@@ -67,7 +67,7 @@ export function ResumeBullet({ bullet, mode, onSave, onRevert }: ResumeBulletPro
       className={cn(
         "group rounded-md p-2",
         changed && !showOriginalOnly && "bg-accent/40",
-        bullet.unverified && "ring-1 ring-amber-500/40"
+        bullet.unverified && "ring-1 ring-warning/40"
       )}
     >
       <BulletBody
@@ -125,16 +125,16 @@ function BulletEditor({
       />
 
       {warnings.length > 0 && (
-        <div className="flex items-start gap-2 rounded-md bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
+        <div className="flex items-start gap-2 rounded-md bg-warning/10 p-2 text-xs text-warning">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" strokeWidth={1.75} />
           <div>
             <p className="font-medium">Goes beyond your evidence file</p>
-            <ul className="mt-0.5 list-disc pl-4 text-amber-700/80 dark:text-amber-400/80">
+            <ul className="mt-0.5 list-disc pl-4 text-warning/80">
               {warnings.map((w) => (
                 <li key={w}>{w}</li>
               ))}
             </ul>
-            <p className="mt-1 text-amber-700/70 dark:text-amber-400/70">
+            <p className="mt-1 text-warning/70">
               Saved anyway — it&rsquo;s your history. Add it to career_evidence.json to
               clear this.
             </p>
@@ -146,7 +146,7 @@ function BulletEditor({
         <span
           className={cn(
             "text-xs tabular-nums",
-            words > 42 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
+            words > 42 ? "text-warning" : "text-muted-foreground"
           )}
         >
           {words} words{words > 42 && " — long for one bullet"}
@@ -205,7 +205,7 @@ function BulletBody({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="rounded p-0.5 text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+                className="rounded p-0.5 text-warning hover:bg-warning/10"
                 aria-label="Unverified claim"
               >
                 <AlertTriangle className="size-3.5" strokeWidth={1.75} />

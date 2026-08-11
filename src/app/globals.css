@@ -27,6 +27,12 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -67,6 +73,16 @@
   --accent: oklch(0.94 0.03 264);
   --accent-foreground: oklch(0.35 0.15 264);
   --destructive: oklch(0.577 0.245 27.325);
+  /* Status colours. These existed only as hardcoded Tailwind palette classes
+     (text-amber-400, border-blue-900, bg-blue-950) scattered across the app —
+     several of them dark-mode values sitting in light-mode markup, so a
+     "caution" badge was unreadable in one theme or the other. */
+  --success: oklch(0.58 0.14 150);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.65 0.15 75);
+  --warning-foreground: oklch(0.16 0.005 90);
+  --info: oklch(0.55 0.13 240);
+  --info-foreground: oklch(0.985 0 0);
   --border: oklch(0.92 0.004 90);
   --input: oklch(0.92 0.004 90);
   --ring: oklch(0.47 0.19 264 / 0.5);
@@ -104,6 +120,14 @@
   --accent: oklch(0.28 0.05 264);
   --accent-foreground: oklch(0.85 0.08 264);
   --destructive: oklch(0.704 0.191 22.216);
+  /* Lifted and desaturated for the charcoal background — same roles, so
+     markup never needs to know which theme it is in. */
+  --success: oklch(0.72 0.15 150);
+  --success-foreground: oklch(0.16 0.004 264);
+  --warning: oklch(0.78 0.14 75);
+  --warning-foreground: oklch(0.16 0.004 264);
+  --info: oklch(0.70 0.13 240);
+  --info-foreground: oklch(0.16 0.004 264);
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.68 0.17 264 / 0.5);

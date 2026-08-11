@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Search, MapPin, SlidersHorizontal, Bookmark, Sparkles, AlertCircle } from "lucide-react";
+import { Search, MapPin, Bookmark, Sparkles, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,6 +25,8 @@ import { searchJobs } from "@/lib/api/jobs";
 import { saveSearch } from "@/lib/saved-searches";
 import { createSavedSearch } from "@/lib/api/ops";
 import { isLiveApi } from "@/lib/api/client";
+import { useJobFlags } from "@/lib/hooks/use-job-flags";
+import { useDebounced } from "@/lib/hooks/use-debounced";
 import type { Job, JobSearchFilters, JobSort, WorkArrangement } from "@/types/job";
 
 const salaryOptions = [
@@ -83,17 +85,25 @@ export default function JobsPage() {
   const [minFit, setMinFit] = React.useState("any");
   const [sort, setSort] = React.useState<JobSort>("recommended");
   const [selectedJob, setSelectedJob] = React.useState<Job | null>(null);
-  const [localOverrides, setLocalOverrides] = React.useState<Record<string, Partial<Job>>>({});
+  const { toggleSave, dismiss } = useJobFlags();
 
-  const filters: JobSearchFilters = {
-    query: query || undefined,
-    location: location || undefined,
-    workArrangements: arrangements.length ? arrangements : undefined,
-    minimumSalary: minSalary !== "any" ? Number(minSalary) : undefined,
-    minimumFit: minFit !== "any" ? Number(minFit) : undefined,
-  };
+  // Only the free-text boxes are debounced. The toggles and selects are single
+  // deliberate clicks, so making the user wait 300ms for those would be worse.
+  const debouncedQuery = useDebounced(query);
+  const debouncedLocation = useDebounced(location);
 
-  const { data, isLoading, isError } = useQuery({
+  const filters: JobSearchFilters = React.useMemo(
+    () => ({
+      query: debouncedQuery || undefined,
+      location: debouncedLocation || undefined,
+      workArrangements: arrangements.length ? arrangements : undefined,
+      minimumSalary: minSalary !== "any" ? Number(minSalary) : undefined,
+      minimumFit: minFit !== "any" ? Number(minFit) : undefined,
+    }),
+    [debouncedQuery, debouncedLocation, arrangements, minSalary, minFit]
+  );
+
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["jobs", "search", filters],
     queryFn: () => searchJobs(filters),
   });
@@ -103,7 +113,9 @@ export default function JobsPage() {
   const total = data?.ok ? data.data.total : 0;
   const scored = data?.ok ? (data.data.scored ?? data.data.jobs.length) : 0;
   const setAside = data?.ok ? (data.data.setAside ?? 0) : 0;
-  const jobs = sortJobs(rawJobs, sort).map((j) => ({ ...j, ...localOverrides[j.id] }));
+  // The backend already drops dismissed postings before scoring; this catches
+  // the optimistic window between the click and the refetch.
+  const jobs = sortJobs(rawJobs, sort).filter((j) => !j.dismissed);
 
   function handleSelect(job: Job) {
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
@@ -115,15 +127,12 @@ export default function JobsPage() {
   }
 
   function handleToggleSave(job: Job) {
-    const nextSaved = !job.saved;
-    setLocalOverrides((prev) => ({ ...prev, [job.id]: { saved: nextSaved } }));
-    toast.success(nextSaved ? "Job saved" : "Removed from saved");
+    void toggleSave(job);
   }
 
   function handleDismiss(job: Job) {
-    setLocalOverrides((prev) => ({ ...prev, [job.id]: { dismissed: true } }));
     if (selectedJob?.id === job.id) setSelectedJob(null);
-    toast("Job dismissed");
+    void dismiss(job);
   }
 
   function handleSaveSearch() {
@@ -138,8 +147,6 @@ export default function JobsPage() {
       description: "Find it under Saved Searches in the sidebar.",
     });
   }
-
-  const visibleJobs = jobs.filter((j) => !j.dismissed);
 
   return (
     <div className="flex flex-1 flex-col gap-5">
@@ -159,8 +166,16 @@ export default function JobsPage() {
             placeholder="Job title or skills"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-8"
+            className="pl-8 pr-8"
           />
+          {/* The search now waits for typing to settle, so say when it fires —
+              otherwise the pause reads as the box being broken. */}
+          {isFetching && (
+            <Loader2
+              className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
+              strokeWidth={1.75}
+            />
+          )}
         </div>
         <div className="relative sm:w-64">
           <MapPin className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
@@ -171,10 +186,6 @@ export default function JobsPage() {
             className="pl-8"
           />
         </div>
-        <Button onClick={() => toast.info("Search updates live as you type/filter — nothing more to click.")}>
-          <Search className="size-3.5" strokeWidth={1.75} />
-          Search Jobs
-        </Button>
       </div>
 
       {/* Filter row */}
@@ -212,15 +223,6 @@ export default function JobsPage() {
             ))}
           </SelectContent>
         </Select>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => toast.info("More filters (ATS, industry, sponsorship, date posted) will land once discovery connects to real sources.")}
-        >
-          <SlidersHorizontal className="size-3.5" strokeWidth={1.75} />
-          More Filters
-        </Button>
 
         <Button variant="outline" size="sm" onClick={handleSaveSearch}>
           <Bookmark className="size-3.5" strokeWidth={1.75} />
@@ -293,7 +295,7 @@ export default function JobsPage() {
             />
           )}
 
-          {!isLoading && data?.ok && visibleJobs.length === 0 && (
+          {!isLoading && data?.ok && jobs.length === 0 && (
             <EmptyState
               icon={Sparkles}
               title="No matches yet"
@@ -302,7 +304,7 @@ export default function JobsPage() {
           )}
 
           {!isLoading &&
-            visibleJobs.map((job) => (
+            jobs.map((job) => (
               <JobCard
                 key={job.id}
                 job={job}
