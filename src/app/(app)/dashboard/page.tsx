@@ -22,6 +22,7 @@ import { PageHeader } from "@/components/page-header";
 import { MetricCard } from "@/components/metric-card";
 import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
+import { AlertsBanner } from "@/components/alerts-banner";
 import { searchJobs } from "@/lib/api/jobs";
 import { useAutopilot } from "@/lib/hooks/use-autopilot";
 import { useJobFlags } from "@/lib/hooks/use-job-flags";
@@ -109,6 +110,10 @@ export default function DashboardPage() {
           </div>
         }
       />
+
+      {/* Outstanding work, above the metrics: a count of what is going well
+          matters less than the thing that has been sitting unsent for days. */}
+      <AlertsBanner />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {metrics.map((m) => (

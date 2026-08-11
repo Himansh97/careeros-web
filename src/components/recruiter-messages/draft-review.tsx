@@ -9,6 +9,7 @@ import {
   ExternalLink,
   FileCheck2,
   LoaderCircle,
+  MailCheck,
   RotateCcw,
   Save,
   ShieldCheck,
@@ -200,9 +201,23 @@ export function DraftReview({ message, onRefetch }: DraftReviewProps) {
     );
   }
 
-  const status = statusDetails[draft.status];
+  // Once a reply has actually gone out, the draft status is not just stale —
+  // "Approved for draft creation. No email has been sent." is a false
+  // statement about the candidate's own mailbox, and the one that would make
+  // them send a second time. Sending outranks every draft status.
+  const status = draft.sentAt
+    ? {
+        label: "Reply sent",
+        description: `You sent this reply from Gmail on ${new Date(draft.sentAt).toLocaleString()}. Nothing further is owed on this thread.`,
+        className: "border-success/30 bg-success/10 text-success",
+        icon: MailCheck,
+      }
+    : statusDetails[draft.status];
   const StatusIcon = status.icon;
-  const isEditable = draft.status === "awaiting_approval" || draft.status === "failed";
+  // A sent reply is a record, not a working document.
+  const isEditable =
+    !draft.sentAt &&
+    (draft.status === "awaiting_approval" || draft.status === "failed");
   const isDirty =
     to !== draft.to.join(", ") ||
     cc !== draft.cc.join(", ") ||

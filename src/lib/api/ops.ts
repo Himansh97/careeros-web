@@ -112,3 +112,22 @@ export const saveAutomationRules = (rules: Partial<AutomationRules>) =>
   });
 
 export type { ApiResult };
+
+export interface CareerAlert {
+  kind: string;
+  severity: "high" | "medium";
+  title: string;
+  detail: string;
+  action: string;
+  ref: string | null;
+}
+
+/**
+ * What is outstanding — written, approved or received, and not acted on.
+ *
+ * The inverse of follow-ups, which only knows about things that happened. Six
+ * outreach drafts sat unsent for days and a SoFi application stopped on a
+ * security-code step, none of it visible anywhere in the app.
+ */
+export const listAlerts = () =>
+  apiFetch<{ alerts: CareerAlert[]; high: number }>("/api/alerts");
