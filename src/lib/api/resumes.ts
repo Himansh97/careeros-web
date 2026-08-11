@@ -85,11 +85,16 @@ export async function listResumes(): Promise<ApiResult<ResumeVersion[]>> {
   if (isLiveApi()) {
     // Resumes are generated per job on demand, so the list view derives from
     // applications that already have a resume score.
-    const res = await apiFetch<{ applications: { jobId: string; title: string; company: { name: string }; rawFitScore: number; resumeScore: number | null }[] }>(
+    const res = await apiFetch<{ applications: { jobId: string; title: string; company: { name: string }; rawFitScore: number; resumeScore: number | null; updatedAt?: string }[] }>(
       "/api/applications"
     );
     if (!res.ok) return res;
-    const withResumes = res.data.applications.filter((a) => a.resumeScore !== null);
+    // Most recently touched first. The list came back in pipeline order, so
+    // the resume you were last working on could be anywhere in it — which is
+    // exactly the thing you go to this page to find.
+    const withResumes = res.data.applications
+      .filter((a) => a.resumeScore !== null)
+      .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
     return {
       ok: true,
       data: withResumes.map((a) => ({
@@ -109,7 +114,7 @@ export async function listResumes(): Promise<ApiResult<ResumeVersion[]>> {
           whatWorks: [],
           concerns: [],
         },
-        updatedAt: "",
+        updatedAt: a.updatedAt ?? "",
       })),
     };
   }

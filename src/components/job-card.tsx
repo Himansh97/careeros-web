@@ -66,6 +66,14 @@ export function JobCard({ job, selected, onSelect, onToggleSave, onDismiss }: Jo
               </span>
             )}
             <span className="rounded bg-muted px-1.5 py-0.5">{job.source}</span>
+            {/* The source names the board; this names who put it here. A
+                pasted Greenhouse link reads "Greenhouse" like every other, so
+                without this there is no way to spot your own. */}
+            {job.origin === "pasted" && (
+              <span className="rounded bg-info/10 px-1.5 py-0.5 text-info">
+                Added by you
+              </span>
+            )}
             {job.recruiterStatus === "found" && (
               <span className="inline-flex items-center gap-1 text-primary">
                 <UserCheck className="size-3" strokeWidth={1.75} />

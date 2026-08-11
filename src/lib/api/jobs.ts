@@ -236,3 +236,22 @@ function matchesFilters(job: Job, filters: JobSearchFilters): boolean {
 function simulateLatency() {
   return new Promise((resolve) => setTimeout(resolve, 220));
 }
+
+export interface RefreshResult {
+  total: number;
+  unitedStates: number;
+  pasted: number;
+  sources: Record<string, number>;
+  failed: string[];
+}
+
+/**
+ * Re-poll every source now rather than waiting for the 15-minute cache.
+ *
+ * Fetches only — scores nothing, tailors nothing, queues nothing. Autopilot
+ * (`runAutopilot`) is the one that does all that.
+ */
+export async function refreshJobs(): Promise<ApiResult<RefreshResult>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch<RefreshResult>("/api/jobs/refresh", { method: "POST" });
+}

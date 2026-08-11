@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FileText, AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
+import { formatRelativeTime } from "@/lib/format";
 import { ScoreBadge } from "@/components/score-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,7 @@ export default function ResumesPage() {
 
       {!isLoading && data?.ok && data.data.length > 0 && (
         <div className="divide-y divide-border rounded-lg border border-border bg-card">
-          {data.data.map((resume) => (
+          {data.data.map((resume, index) => (
             <Link
               key={resume.jobId}
               href={`/resume/${resume.jobId}`}
@@ -66,8 +67,19 @@ export default function ResumesPage() {
                 <div className="text-sm font-medium text-foreground">
                   {resume.jobTitle} <span className="font-normal text-muted-foreground">@ {resume.companyName}</span>
                 </div>
-                <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Version V{resume.version}</span>
+                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  {/* Sorted newest-first, so the top row is the one you were last
+                        working on — say so rather than leave it to guesswork. */}
+                    {index === 0 && (
+                      <Badge className="bg-info/10 font-normal text-info" variant="outline">
+                        Most recent
+                      </Badge>
+                    )}
+                    {resume.updatedAt ? (
+                      <span>Updated {formatRelativeTime(resume.updatedAt)}</span>
+                    ) : (
+                      <span>Version V{resume.version}</span>
+                    )}
                   <Badge variant="secondary" className="font-normal">
                     {statusLabel[resume.status]}
                   </Badge>

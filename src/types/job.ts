@@ -93,6 +93,17 @@ export interface Job {
   gaps?: string[];
   saved?: boolean;
   dismissed?: boolean;
+  /**
+   * Who put this job in the list.
+   *
+   * "pasted" — the candidate added it, by link or by pasting the description.
+   * "fetched" — discovery found it on one of the polled boards.
+   *
+   * Distinct from `importedNotLive`: a Greenhouse link the candidate pastes is
+   * resolved through the board's real API, so it is live, but it is still
+   * theirs rather than something the daily run turned up.
+   */
+  origin?: "pasted" | "fetched";
   applyUrl: string;
 }
 

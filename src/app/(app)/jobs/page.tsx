@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Search, MapPin, Bookmark, Sparkles, AlertCircle, Loader2 } from "lucide-react";
+import { Search, MapPin, Bookmark, Sparkles, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +21,7 @@ import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
 import { JobDetailPanel } from "@/components/job-detail-panel";
 import { ImportByUrl } from "@/components/jobs/import-by-url";
-import { searchJobs } from "@/lib/api/jobs";
+import { searchJobs, refreshJobs } from "@/lib/api/jobs";
 import { saveSearch } from "@/lib/saved-searches";
 import { createSavedSearch } from "@/lib/api/ops";
 import { isLiveApi } from "@/lib/api/client";
@@ -85,7 +85,35 @@ export default function JobsPage() {
   const [minFit, setMinFit] = React.useState("any");
   const [sort, setSort] = React.useState<JobSort>("recommended");
   const [selectedJob, setSelectedJob] = React.useState<Job | null>(null);
+  // "Where did this come from" is a different question from any server-side
+  // filter, and cheap to answer on the client: origin ships with every row.
+  const [origin, setOrigin] = React.useState<"all" | "pasted" | "fetched">("all");
+  const [refreshing, setRefreshing] = React.useState(false);
   const { toggleSave, dismiss } = useJobFlags();
+  const queryClient = useQueryClient();
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    const res = await refreshJobs();
+    setRefreshing(false);
+    if (!res.ok) {
+      toast.error("Couldn't refresh", {
+        description:
+          res.reason === "not_connected"
+            ? "The CareerOS API isn't reachable — start it on port 8000."
+            : "The sources could not be re-polled.",
+      });
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    const { total, unitedStates, failed } = res.data;
+    toast.success(`Re-polled every source — ${unitedStates.toLocaleString()} US roles`, {
+      description:
+        failed.length > 0
+          ? `${total.toLocaleString()} found. ${failed.length} source(s) failed: ${failed.join(", ")}`
+          : `${total.toLocaleString()} found across all sources.`,
+    });
+  }
 
   // Only the free-text boxes are debounced. The toggles and selects are single
   // deliberate clicks, so making the user wait 300ms for those would be worse.
@@ -115,7 +143,10 @@ export default function JobsPage() {
   const setAside = data?.ok ? (data.data.setAside ?? 0) : 0;
   // The backend already drops dismissed postings before scoring; this catches
   // the optimistic window between the click and the refetch.
-  const jobs = sortJobs(rawJobs, sort).filter((j) => !j.dismissed);
+  const jobs = sortJobs(rawJobs, sort)
+    .filter((j) => !j.dismissed)
+    .filter((j) => origin === "all" || (j.origin ?? "fetched") === origin);
+  const pastedCount = rawJobs.filter((j) => j.origin === "pasted" && !j.dismissed).length;
 
   function handleSelect(job: Job) {
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
@@ -152,7 +183,25 @@ export default function JobsPage() {
     <div className="flex flex-1 flex-col gap-5">
       <PageHeader
         title="Discover Jobs"
-        description="Live across Greenhouse, Ashby, The Muse, Arbeitnow and RemoteOK — scored against your real evidence."
+        description="Live across Greenhouse, Ashby, Lever, Workday, SmartRecruiters, The Muse, Arbeitnow and RemoteOK — scored against your real evidence."
+        action={
+          /* Discovery is lazy and cached for 15 minutes, so the pool only moved
+             when the 07:00 job ran or someone opened the app. This is the "look
+             again now" that was missing. It fetches only — nothing is scored,
+             tailored or queued. */
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void handleRefresh()}
+            disabled={refreshing}
+          >
+            <RefreshCw
+              className={`size-3.5 ${refreshing ? "animate-spin" : ""}`}
+              strokeWidth={1.75}
+            />
+            {refreshing ? "Fetching…" : "Fetch now"}
+          </Button>
+        }
       />
 
       {/* Paste a link to any posting, including boards we don't poll. */}
@@ -223,6 +272,22 @@ export default function JobsPage() {
             ))}
           </SelectContent>
         </Select>
+
+        {/* Jobs you added vs jobs discovery found. Only shown once something
+            pasted actually exists, so it never appears as a dead control. */}
+        {pastedCount > 0 && (
+          <ToggleGroup
+            type="single"
+            size="sm"
+            variant="outline"
+            value={origin}
+            onValueChange={(v) => v && setOrigin(v as "all" | "pasted" | "fetched")}
+          >
+            <ToggleGroupItem value="all">All</ToggleGroupItem>
+            <ToggleGroupItem value="pasted">Pasted ({pastedCount})</ToggleGroupItem>
+            <ToggleGroupItem value="fetched">Auto-fetched</ToggleGroupItem>
+          </ToggleGroup>
+        )}
 
         <Button variant="outline" size="sm" onClick={handleSaveSearch}>
           <Bookmark className="size-3.5" strokeWidth={1.75} />
