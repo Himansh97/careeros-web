@@ -9,6 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/format";
 import type {
@@ -20,6 +21,7 @@ interface MessageCardProps {
   message: RecruiterMessage;
   company?: string;
   role?: string;
+  applicationLookupState?: "loading" | "unavailable" | "missing";
 }
 
 const statusDetails: Record<
@@ -66,10 +68,21 @@ function titleCase(value: string) {
     .join(" ");
 }
 
-export function MessageCard({ message, company, role }: MessageCardProps) {
+export function MessageCard({
+  message,
+  company,
+  role,
+  applicationLookupState,
+}: MessageCardProps) {
   const status = message.draft ? statusDetails[message.draft.status] : null;
   const StatusIcon = status?.icon ?? Mail;
   const received = new Date(message.receivedAt);
+  const hasLinkedApplication = message.applicationId !== null;
+  const applicationContext = !hasLinkedApplication
+    ? { company: "Unmatched application", role: "No linked role" }
+    : applicationLookupState === "missing"
+      ? { company: "Linked application not found", role: "Role details unavailable" }
+      : { company: "Application details unavailable", role: "Role details unavailable" };
 
   return (
     <Link
@@ -79,17 +92,29 @@ export function MessageCard({ message, company, role }: MessageCardProps) {
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="font-medium text-foreground">
-              {company ?? "Unmatched application"}
-            </span>
-            <span className="hidden text-muted-foreground sm:inline" aria-hidden="true">
-              ·
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {role ?? "Role unavailable"}
-            </span>
-          </div>
+          {hasLinkedApplication && applicationLookupState === "loading" ? (
+            <div
+              className="flex items-center gap-2"
+              aria-label="Loading linked application details"
+              aria-busy="true"
+            >
+              <Skeleton className="h-4 w-32" />
+              <span className="text-muted-foreground" aria-hidden="true">·</span>
+              <Skeleton className="h-4 w-40" />
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="font-medium text-foreground">
+                {company ?? applicationContext.company}
+              </span>
+              <span className="hidden text-muted-foreground sm:inline" aria-hidden="true">
+                ·
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {role ?? applicationContext.role}
+              </span>
+            </div>
+          )}
           <h2 className="line-clamp-2 text-base font-semibold tracking-tight text-foreground group-hover:text-primary">
             {message.subject}
           </h2>

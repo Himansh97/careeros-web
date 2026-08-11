@@ -24,6 +24,8 @@ export default function RecruiterMessagesPage() {
   const messages = messagesQuery.data?.ok ? messagesQuery.data.data : [];
   const applications = applicationsQuery.data?.ok ? applicationsQuery.data.data : [];
   const applicationById = new Map(applications.map((application) => [application.id, application]));
+  const applicationDetailsUnavailable =
+    applicationsQuery.isError || applicationsQuery.data?.ok === false;
   const notConnected =
     messagesQuery.data?.ok === false && messagesQuery.data.reason === "not_connected";
   const loadFailed =
@@ -97,16 +99,50 @@ export default function RecruiterMessagesPage() {
           <p className="text-sm text-muted-foreground">
             {messages.length} message{messages.length === 1 ? "" : "s"}, newest first
           </p>
+          {applicationDetailsUnavailable &&
+            messages.some((message) => message.applicationId !== null) && (
+              <div
+                role="status"
+                className="flex flex-col gap-3 rounded-lg border border-border bg-muted/40 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex items-start gap-2 text-muted-foreground">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
+                  <div>
+                    <p className="font-medium text-foreground">Application details unavailable</p>
+                    <p>Messages and draft statuses are still current. Try the role details again when convenient.</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => void applicationsQuery.refetch()}
+                >
+                  <RefreshCw />
+                  Retry details
+                </Button>
+              </div>
+            )}
           {messages.map((message) => {
             const application = message.applicationId
               ? applicationById.get(message.applicationId)
               : undefined;
+            const applicationLookupState = !message.applicationId
+              ? undefined
+              : applicationsQuery.isLoading
+                ? "loading"
+                : applicationDetailsUnavailable
+                  ? "unavailable"
+                  : application
+                    ? undefined
+                    : "missing";
             return (
               <MessageCard
                 key={message.gmailMessageId}
                 message={message}
                 company={application?.company.name}
                 role={application?.title}
+                applicationLookupState={applicationLookupState}
               />
             );
           })}
