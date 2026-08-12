@@ -179,8 +179,28 @@ export const listSkillGaps = () =>
     "/api/skill-gaps"
   );
 
+export interface InterviewIntel {
+  researched: boolean;
+  company: string;
+  roleFamily: string;
+  note?: string;
+  exactFamily?: boolean;
+  researchedAt?: string;
+  ageDays?: number;
+  stale?: boolean;
+  sources?: { title: string; url: string }[];
+  timeline?: string;
+  rounds?: { name: string; detail: string }[];
+  questionTypes?: string[];
+  prepare?: string[];
+  reportedPitfalls?: string[];
+  notes?: string;
+}
+
 export interface InterviewPack {
   jobId: string;
+  /** What people report about this employer's process. Absent when unresearched. */
+  intel: InterviewIntel;
   role: {
     title: string;
     company: string;

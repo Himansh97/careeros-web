@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, AlertTriangle, MessageCircleQuestion, Quote, HelpCircle } from "lucide-react";
+import { BookOpen, AlertTriangle, MessageCircleQuestion, Quote, HelpCircle, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getInterviewPack } from "@/lib/api/ops";
+import { InterviewIntel } from "@/components/applications/interview-intel";
 import { isLiveApi } from "@/lib/api/client";
 
 /**
@@ -73,6 +74,17 @@ export function InterviewPack({ jobId }: { jobId: string }) {
 
             {data?.ok && (
               <>
+                {/* Their process first. Knowing there is a live SQL round and a
+                    written project review changes what you prepare far more
+                    than any of the sections below. */}
+                <Section
+                  icon={Building2}
+                  title="Their process"
+                  hint="Researched from public reports, with the sources named."
+                >
+                  <InterviewIntel intel={data.data.intel} />
+                </Section>
+
                 {data.data.expectToBeProbed.length > 0 && (
                   <Section
                     icon={AlertTriangle}
