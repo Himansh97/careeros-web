@@ -297,3 +297,17 @@ export const getReferralStrategy = (jobId: string) =>
   apiFetch<ReferralStrategy>(
     `/api/jobs/${encodeURIComponent(jobId)}/referral-strategy`
   );
+
+
+/**
+ * Draft the outreach for a job — email and LinkedIn message, addressed to the
+ * best contact the lookup can find.
+ *
+ * Autopilot deliberately never does this: each run would spend a provider
+ * credit per job across thousands of postings. It is per-job and on request,
+ * which is why it needs a button and never had one.
+ */
+export const draftOutreach = (jobId: string) =>
+  apiFetch<OutreachRecord>(`/api/jobs/${encodeURIComponent(jobId)}/outreach`, {
+    method: "POST",
+  });

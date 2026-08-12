@@ -32,6 +32,11 @@ export interface FoundPerson {
   linkedinUrl: string | null;
   isRecruiter: boolean;
   provider: string;
+  /** Position after ranking — 1 is the best path in. */
+  rank?: number;
+  /** 0-100, from title against the role, seniority and shared background. */
+  rankScore?: number;
+  rankWhy?: string[];
 }
 
 export interface ContactLookupResult {
@@ -44,6 +49,8 @@ export interface ContactLookupResult {
   company?: string;
   jobId?: string;
   contacts: FoundPerson[];
+  /** How many score highly enough to be worth writing to. */
+  worthContacting?: number;
 }
 
 export async function listContacts(): Promise<

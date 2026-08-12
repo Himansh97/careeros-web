@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Users, Loader2, Mail, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { lookupContactsForJob, type FoundPerson } from "@/lib/api/contacts";
+import { draftOutreach } from "@/lib/api/ops";
 
 /**
  * Find the people you could actually write to at this employer.
@@ -36,8 +38,28 @@ export function FindPeople({
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [contacts, setContacts] = React.useState<FoundPerson[] | null>(null);
+  const [showAll, setShowAll] = React.useState(false);
+  const [drafting, setDrafting] = React.useState(false);
+
+  async function draft() {
+    setDrafting(true);
+    const res = await draftOutreach(jobId);
+    setDrafting(false);
+    if (!res.ok) {
+      toast.error("Couldn't draft outreach", {
+        description: res.message ?? "The backend rejected it.",
+      });
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["outreach"] });
+    toast.success("Email and LinkedIn message drafted", {
+      description: "Nothing was sent. Find both under Recruiter Outreach.",
+      action: { label: "Open", onClick: () => router.push("/outreach") },
+    });
+  }
   const [problem, setProblem] = React.useState<string | null>(null);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   async function find() {
     setOpen(true);
@@ -82,9 +104,9 @@ export function FindPeople({
           <DialogHeader>
             <DialogTitle>People at {company}</DialogTitle>
             <DialogDescription>
-              Real addresses, looked up through the contact providers. Recruiters
-              are marked — they can be written to directly, since screening is
-              the job.
+              Ranked by how much reason each person has to reply — title against
+              the role, seniority, and background you actually share. Recruiters
+              can be written to directly; screening is their job.
             </DialogDescription>
           </DialogHeader>
 
@@ -99,10 +121,15 @@ export function FindPeople({
 
           {contacts && contacts.length > 0 && (
             <ul className="divide-y divide-border">
-              {contacts.map((c) => (
+              {(showAll ? contacts : contacts.filter((c) => (c.rankScore ?? 0) >= 70)).map((c) => (
                 <li key={c.email ?? c.name} className="flex flex-wrap items-center gap-3 py-2.5">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
+                      {c.rank === 1 && (
+                        <span className="rounded bg-primary px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary-foreground">
+                          Best path
+                        </span>
+                      )}
                       <span className="text-sm font-medium text-foreground">{c.name}</span>
                       {c.isRecruiter && (
                         <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary">
@@ -159,6 +186,25 @@ export function FindPeople({
                 </li>
               ))}
             </ul>
+          )}
+
+          {/* A provider returns everyone it can find. Ten names is the same
+              problem as none — the candidate still has to pick one. */}
+          {contacts && contacts.length > 0 && (
+            <button
+              onClick={() => setShowAll((v) => !v)}
+              className="w-full rounded-sm py-1 text-center text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {showAll
+                ? "Show only the ones worth writing to"
+                : `Show all ${contacts.length} found`}
+            </button>
+          )}
+
+          {contacts && contacts.length > 0 && (
+            <Button onClick={() => void draft()} disabled={drafting} className="w-full">
+              {drafting ? "Drafting…" : "Draft email and LinkedIn message"}
+            </Button>
           )}
 
           <p className="border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
