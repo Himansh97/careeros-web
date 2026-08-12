@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertCircle, Send, Copy, Mail, CheckCheck } from "lucide-react";
+import { AlertCircle, Send, Copy, Mail, CheckCheck, RotateCcw } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -81,14 +81,23 @@ export default function OutreachPage() {
 
   const records = data?.ok ? data.data.outreach : [];
 
-  async function update(id: string, action: "sent" | "replied") {
+  async function update(id: string, action: "sent" | "replied" | "unreplied") {
     const res = await setOutreachStatus(id, action);
     if (res.ok) {
-      toast.success(
-        action === "sent"
-          ? "Marked as sent — follow-up scheduled"
-          : "Marked as replied — follow-up cancelled"
-      );
+      // "They replied" cancels the follow-up, so a mis-click silently drops the
+      // reminder to chase someone who never answered. Offer the undo in the
+      // same toast rather than making it unrecoverable.
+      if (action === "replied") {
+        toast.success("Marked as replied — follow-up cancelled", {
+          action: { label: "Undo", onClick: () => void update(id, "unreplied") },
+        });
+      } else {
+        toast.success(
+          action === "sent"
+            ? "Marked as sent — follow-up scheduled"
+            : "Reply undone — follow-up restored from when you sent it"
+        );
+      }
       qc.invalidateQueries({ queryKey: ["outreach"] });
       qc.invalidateQueries({ queryKey: ["follow-ups"] });
       setSelected(null);
@@ -232,6 +241,21 @@ export default function OutreachPage() {
                     <Button size="sm" onClick={() => update(selected.id, "replied")}>
                       <CheckCheck className="size-3.5" strokeWidth={1.75} />
                       They replied
+                    </Button>
+                  )}
+                  {/* Marking a thread replied cancels its follow-up, so a
+                      mis-click drops the reminder to chase someone who never
+                      answered — and nothing surfaces that afterwards. The way
+                      back has to be visible on the record itself, not only in
+                      a toast that has already gone. */}
+                  {selected.status === "replied" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => update(selected.id, "unreplied")}
+                    >
+                      <RotateCcw className="size-3.5" strokeWidth={1.75} />
+                      They didn&apos;t reply
                     </Button>
                   )}
                 </div>

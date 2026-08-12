@@ -67,7 +67,10 @@ export interface AutomationStatus {
 export const listOutreach = () =>
   apiFetch<{ outreach: OutreachRecord[] }>("/api/outreach");
 
-export const setOutreachStatus = (id: string, action: "sent" | "replied") =>
+export const setOutreachStatus = (
+  id: string,
+  action: "sent" | "replied" | "unreplied"
+) =>
   apiFetch<OutreachRecord>(`/api/outreach/${encodeURIComponent(id)}/status`, {
     method: "POST",
     body: JSON.stringify({ action }),
