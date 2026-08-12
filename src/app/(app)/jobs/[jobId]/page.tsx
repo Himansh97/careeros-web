@@ -30,6 +30,7 @@ import {
 import { ScoreBadge } from "@/components/score-badge";
 import { MatchBreakdown } from "@/components/match-breakdown";
 import { RequirementMatrix } from "@/components/requirement-matrix";
+import { PostingBreakdown } from "@/components/jobs/posting-breakdown";
 import { EmptyState } from "@/components/empty-state";
 import { getJob } from "@/lib/api/jobs";
 import { useTailoring } from "@/lib/hooks/use-tailoring";
@@ -218,6 +219,11 @@ export default function JobDetailPage() {
         </TabsContent>
 
         <TabsContent value="match" className="space-y-4">
+          {/* Before the score: what this posting actually screens on. A
+              qualified candidate who reads a wishlist as a set of hard bars
+              withdraws from roles they could do. */}
+          <PostingBreakdown job={job} />
+
           {job.matchBreakdown && (
             <div className="rounded-lg border border-border bg-card p-4">
               <div className="mb-4 flex items-center gap-3">

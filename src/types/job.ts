@@ -104,6 +104,22 @@ export interface Job {
    * theirs rather than something the daily run turned up.
    */
   origin?: "pasted" | "fetched";
+  /**
+   * What the posting screens on, versus what it merely says.
+   *
+   * Job descriptions mix real requirements with padding and mood language.
+   * Presenting them together turns "you meet 5 of 6 things they screen on"
+   * into "you meet 5 of 11 things listed" — which is how a qualified
+   * candidate talks themselves out of applying.
+   */
+  posting?: {
+    required: string[];
+    preferred: string[];
+    yearsRequested: number | null;
+    filler: string[];
+    screenedOn: number;
+    note: string;
+  };
   applyUrl: string;
 }
 
