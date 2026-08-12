@@ -132,8 +132,29 @@ export interface CareerAlert {
  * outreach drafts sat unsent for days and a SoFi application stopped on a
  * security-code step, none of it visible anywhere in the app.
  */
+/**
+ * Counts through the pipeline, and whether they support a rate yet.
+ *
+ * Deliberately counts and not percentages until there is enough to divide.
+ * `inferredTimestamps` says how many submit dates were reconstructed during
+ * the backfill rather than observed — a figure that must stay visible, because
+ * timing conclusions drawn from a reconstructed date are weaker than they look.
+ */
+export interface Funnel {
+  tracked: number;
+  submitted: number;
+  responded: number;
+  interviews: number;
+  offers: number;
+  rejections: number;
+  inferredTimestamps: number;
+  ratesAvailable: boolean;
+  needForRates: number;
+  note: string;
+}
+
 export const listAlerts = () =>
-  apiFetch<{ alerts: CareerAlert[]; high: number }>("/api/alerts");
+  apiFetch<{ alerts: CareerAlert[]; high: number; funnel: Funnel }>("/api/alerts");
 
 export interface SkillGap {
   skill: string;

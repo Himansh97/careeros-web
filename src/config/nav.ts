@@ -19,6 +19,7 @@ import {
   Home,
   MoreHorizontal,
   Contact,
+  Radar,
 } from "lucide-react";
 
 export interface NavItem {
@@ -69,6 +70,7 @@ export const navSections: NavSection[] = [
     items: [
       { title: "Autopilot", href: "/automations", icon: Bot },
       { title: "Saved Searches", href: "/jobs/saved", icon: Bookmark },
+      { title: "Mission Review", href: "/review", icon: Radar },
       { title: "Analytics", href: "/analytics", icon: BarChart3 },
       { title: "Activity", href: "/activity", icon: Activity },
       { title: "Settings", href: "/settings", icon: Settings },
