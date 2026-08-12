@@ -43,7 +43,7 @@ file, never `CLAUDE.md`.**
 ## How to run it
 
 ```bash
-npm run dev        # :3311
+npm run dev        # :3311 (set in package.json, not a manual flag)
 npm run lint       # eslint — must be clean
 npx tsc --noEmit   # must be clean
 ```
