@@ -157,3 +157,64 @@ export const listSkillGaps = () =>
   apiFetch<{ gaps: SkillGap[]; consideredJobs: number; minimumFit: number; note: string }>(
     "/api/skill-gaps"
   );
+
+export interface InterviewPack {
+  jobId: string;
+  role: {
+    title: string;
+    company: string;
+    location: string | null;
+    applyUrl: string | null;
+    screensOn: string[];
+    wishlist: string[];
+    yearsRequested: number | null;
+  };
+  whatTheySaw: {
+    resumeScore: number | null;
+    bullets: string[];
+    summary: string | null;
+    submittedAt: string | null;
+    status: string | null;
+  };
+  expectToBeProbed: {
+    requirement: string;
+    match: string;
+    importance: string;
+    severity: string;
+    guidance: string;
+    closest: string | null;
+  }[];
+  likelyQuestions: {
+    question: string;
+    difficulty: string;
+    youHave: string | null;
+    guidance?: string;
+  }[];
+  stories: {
+    claimId: string;
+    employer: string;
+    situation: string;
+    answers: string[];
+    source: string;
+    useWhen: string;
+  }[];
+  questionsToAsk: string[];
+  recruiterThread: {
+    from: string | null;
+    subject: string | null;
+    receivedAt: string | null;
+    synopsis: string | null;
+    replySentAt: string | null;
+  }[];
+  notIncluded: string;
+}
+
+/**
+ * Everything known about one application, assembled for the interview.
+ *
+ * Contains no company research and no generic question bank — both would have
+ * to be invented, and repeating a made-up company fact to someone who works
+ * there is worse than saying nothing.
+ */
+export const getInterviewPack = (jobId: string) =>
+  apiFetch<InterviewPack>(`/api/jobs/${encodeURIComponent(jobId)}/interview-pack`);

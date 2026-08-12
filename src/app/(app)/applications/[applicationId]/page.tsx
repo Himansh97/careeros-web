@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { ArrowLeft, Building2, MapPin, AlertCircle, UserCheck, ArrowRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { InterviewPack } from "@/components/applications/interview-pack";
+import { RecordOutcome } from "@/components/applications/record-outcome";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ScoreBadge } from "@/components/score-badge";
@@ -115,6 +117,10 @@ export default function ApplicationDetailPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* Everything the system knows about this application, in one place —
+              most useful the moment a recruiter replies. */}
+          <InterviewPack jobId={app.jobId} />
+          {!app.outcome && <RecordOutcome applicationId={app.id} currentStatus={app.status} />}
           <Button size="sm" variant="outline" onClick={() => router.push(`/jobs/${app.jobId}`)}>
             View job
           </Button>

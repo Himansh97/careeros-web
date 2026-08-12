@@ -26,6 +26,13 @@ export interface ApplicationRecord {
   location: string;
   source: JobSource;
   status: PipelineStatus;
+  /** How it ended, and how far it got. Absent while still live. */
+  outcome?: string | null;
+  outcomeAt?: string | null;
+  outcomeReason?: string | null;
+  outcomeStage?: string | null;
+  firstResponseAt?: string | null;
+  timestampsInferred?: boolean;
   rawFitScore: number;
   resumeScore?: number;
   recruiterStatus?: RecruiterStatus;

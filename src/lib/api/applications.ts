@@ -144,3 +144,27 @@ export function advanceApplication(id: string) {
   };
   write(records.map((a) => (a.id === id ? updated : a)));
 }
+
+/**
+ * Record how an application ended, and how far it got.
+ *
+ * Separate from advancing the pipeline: an outcome arrives at any stage, often
+ * by email rather than a click, and must not be overwritten by a later status
+ * change. The reason is whatever the employer actually said — nothing is
+ * inferred, because a guess stored beside a stated reason becomes
+ * indistinguishable from it.
+ */
+export async function recordOutcome(
+  id: string,
+  outcome: "rejected" | "offer" | "withdrawn",
+  reason = "",
+  stage = ""
+): Promise<ApiResult<ApplicationRecord>> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  const res = await apiFetch<ApplicationRecord>(
+    `/api/applications/${encodeURIComponent(id)}/outcome`,
+    { method: "POST", body: JSON.stringify({ outcome, reason, stage }) }
+  );
+  if (res.ok) await refreshApplications();
+  return res;
+}
