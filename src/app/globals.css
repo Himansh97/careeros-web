@@ -157,3 +157,27 @@
     @apply font-sans;
   }
 }
+
+/* Reduced motion is an accessibility setting, not a preference to style around.
+   The framer-motion primitives check it themselves, but CSS transitions and the
+   hover lift on cards do not — so they are neutralised here. Everything still
+   works; it just changes state instantly instead of travelling. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .hover\:-translate-y-px:hover {
+    transform: none !important;
+  }
+}
+
+/* Numbers that sit in columns or change in place. Proportional digits make a
+   metric jitter as it counts, and make a table of scores fail to line up. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

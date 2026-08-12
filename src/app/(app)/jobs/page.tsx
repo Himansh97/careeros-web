@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
+import { MotionList, MotionListItem } from "@/components/motion/primitives";
 import { JobDetailPanel } from "@/components/job-detail-panel";
 import { ImportByUrl } from "@/components/jobs/import-by-url";
 import { searchJobs, refreshJobs } from "@/lib/api/jobs";
@@ -375,17 +376,24 @@ export default function JobsPage() {
             />
           )}
 
-          {!isLoading &&
-            jobs.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                selected={selectedJob?.id === job.id}
-                onSelect={handleSelect}
-                onToggleSave={handleToggleSave}
-                onDismiss={handleDismiss}
-              />
-            ))}
+          {/* Dismissing used to make a row vanish, which is indistinguishable
+              from a render bug, and re-sorting teleported every row so the
+              reason the order changed was invisible. Both are legible now. */}
+          {!isLoading && (
+            <MotionList className="space-y-2">
+              {jobs.map((job) => (
+                <MotionListItem key={job.id} layoutId={job.id}>
+                  <JobCard
+                    job={job}
+                    selected={selectedJob?.id === job.id}
+                    onSelect={handleSelect}
+                    onToggleSave={handleToggleSave}
+                    onDismiss={handleDismiss}
+                  />
+                </MotionListItem>
+              ))}
+            </MotionList>
+          )}
         </div>
 
         <div className="hidden flex-1 overflow-y-auto lg:block">

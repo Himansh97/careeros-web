@@ -27,10 +27,15 @@ export function JobCard({ job, selected, onSelect, onToggleSave, onDismiss }: Jo
   return (
     <div
       className={cn(
-        "group flex items-start gap-1 rounded-lg border transition-colors",
+        // Was transition-colors only, so a card gave no sense of being a
+        // surface you could pick up — 52 containers shared the identical flat
+        // recipe and the list read as a spreadsheet. A shadow that appears on
+        // hover and a selected state that actually sits proud of the page cost
+        // nothing and make the row feel like an object.
+        "group relative flex items-start gap-1 rounded-lg border transition-all duration-150",
         selected
-          ? "border-primary/40 bg-accent"
-          : "border-border bg-card hover:border-primary/25 hover:bg-accent/40"
+          ? "border-primary/40 bg-accent shadow-sm ring-1 ring-primary/10"
+          : "border-border bg-card hover:-translate-y-px hover:border-primary/25 hover:bg-accent/40 hover:shadow-sm"
       )}
     >
       <button

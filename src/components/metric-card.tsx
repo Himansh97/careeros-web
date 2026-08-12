@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AnimatedNumber } from "@/components/motion/primitives";
 
 interface MetricCardProps {
   label: string;
@@ -21,8 +22,10 @@ export function MetricCard({ label, value, icon: Icon, hint, className }: Metric
         <span className="text-xs text-muted-foreground">{label}</span>
         {Icon && <Icon className="size-3.5 text-muted-foreground/60" strokeWidth={1.75} />}
       </div>
-      <div className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">
-        {value}
+      <div className="mt-1.5 text-2xl font-semibold tracking-tight tabular-nums text-foreground">
+        {/* A metric changing after a run is itself the news, so it counts
+            rather than snapping. Strings pass straight through. */}
+        {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
       </div>
       {hint && <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div>}
     </div>
