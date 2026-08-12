@@ -56,96 +56,112 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* LIGHT — the 1975 NASA Graphics Standards Manual.
+ *
+ * Printed paper, not a screen: warm white stock, near-black ink, hairline
+ * rules, and NASA Red used the way the manual uses it — sparingly, as the one
+ * thing on the page allowed to shout. The red is #D92906, PMS 179, the colour
+ * specified for the worm logotype when it was introduced.
+ *
+ * A bright space-themed interface is unusual on purpose. Every product that
+ * reaches for "space" reaches for a dark starfield; the actual design artefact
+ * NASA is most admired for is a white printed manual.
+ */
 :root {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  /* warm-neutral near-white background, near-black text */
-  --background: oklch(0.995 0.002 90);
-  --foreground: oklch(0.16 0.005 90);
+  --background: oklch(0.985 0.003 85);
+  --foreground: oklch(0.15 0.01 60);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.005 90);
+  --card-foreground: oklch(0.15 0.01 60);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.005 90);
-  /* accent: deep cobalt/indigo — used deliberately, not as a wash */
-  --primary: oklch(0.47 0.19 264);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0.002 90);
-  --secondary-foreground: oklch(0.205 0.005 90);
-  --muted: oklch(0.97 0.002 90);
-  --muted-foreground: oklch(0.5 0.01 90);
-  --accent: oklch(0.94 0.03 264);
-  --accent-foreground: oklch(0.35 0.15 264);
-  --destructive: oklch(0.577 0.245 27.325);
-  /* Status colours. These existed only as hardcoded Tailwind palette classes
-     (text-amber-400, border-blue-900, bg-blue-950) scattered across the app —
-     several of them dark-mode values sitting in light-mode markup, so a
-     "caution" badge was unreadable in one theme or the other. */
-  --success: oklch(0.58 0.14 150);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.65 0.15 75);
-  --warning-foreground: oklch(0.16 0.005 90);
-  --info: oklch(0.55 0.13 240);
-  --info-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 90);
-  --input: oklch(0.92 0.004 90);
-  --ring: oklch(0.47 0.19 264 / 0.5);
-  --chart-1: oklch(0.47 0.19 264);
-  --chart-2: oklch(0.6 0.15 200);
-  --chart-3: oklch(0.7 0.15 150);
-  --chart-4: oklch(0.75 0.15 80);
-  --chart-5: oklch(0.65 0.2 30);
-  --radius: 0.625rem;
-  /* sidebar: very subtle off-white differentiation from page background */
-  --sidebar: oklch(0.98 0.003 90);
-  --sidebar-foreground: oklch(0.16 0.005 90);
-  --sidebar-primary: oklch(0.47 0.19 264);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.94 0.03 264);
-  --sidebar-accent-foreground: oklch(0.35 0.15 264);
-  --sidebar-border: oklch(0.92 0.004 90);
-  --sidebar-ring: oklch(0.47 0.19 264 / 0.5);
+  --popover-foreground: oklch(0.15 0.01 60);
+  /* NASA Red #D92906 — the accent, never a body-text colour. */
+  --primary: oklch(0.548 0.213 30.5);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.965 0.003 85);
+  --secondary-foreground: oklch(0.2 0.01 60);
+  --muted: oklch(0.965 0.003 85);
+  --muted-foreground: oklch(0.48 0.012 65);
+  --accent: oklch(0.955 0.02 35);
+  --accent-foreground: oklch(0.42 0.18 30.5);
+  --destructive: oklch(0.548 0.213 30.5);
+  /* Flight status, in the operational sense: a station is nominal, in caution,
+     or it is not. These carry the same roles they always did — only the values
+     change — so no markup has to know a theme was swapped underneath it. */
+  --success: oklch(0.52 0.14 148);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.62 0.15 68);
+  --warning-foreground: oklch(0.15 0.01 60);
+  --info: oklch(0.45 0.09 240);
+  --info-foreground: oklch(0.99 0 0);
+  --border: oklch(0.86 0.004 85);
+  --input: oklch(0.86 0.004 85);
+  --ring: oklch(0.548 0.213 30.5 / 0.45);
+  --chart-1: oklch(0.548 0.213 30.5);
+  --chart-2: oklch(0.45 0.09 240);
+  --chart-3: oklch(0.52 0.14 148);
+  --chart-4: oklch(0.62 0.15 68);
+  --chart-5: oklch(0.4 0.02 65);
+  /* The manual's grid is square and unfussy. Softer corners read as consumer
+     SaaS, which is the look this whole pass exists to get away from. */
+  --radius: 0.3rem;
+  --sidebar: oklch(0.965 0.004 85);
+  --sidebar-foreground: oklch(0.15 0.01 60);
+  --sidebar-primary: oklch(0.548 0.213 30.5);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.955 0.02 35);
+  --sidebar-accent-foreground: oklch(0.42 0.18 30.5);
+  --sidebar-border: oklch(0.86 0.004 85);
+  --sidebar-ring: oklch(0.548 0.213 30.5 / 0.45);
 }
 
+/* DARK — the flight console.
+ *
+ * Instrument grey with a faint blue cast, not pure black: a real console is
+ * lit, and pure black with one saturated accent is the look the frontend-design
+ * skill names as an AI default rather than a choice. Status reads the way a
+ * console reads — nominal green, caution amber, red for the thing that stops a
+ * launch — so colour carries meaning instead of mood.
+ */
 .dark {
-  /* deep charcoal, not pure black; cards slightly raised */
-  --background: oklch(0.16 0.004 264);
-  --foreground: oklch(0.94 0.003 90);
-  --card: oklch(0.205 0.005 264);
-  --card-foreground: oklch(0.94 0.003 90);
-  --popover: oklch(0.205 0.005 264);
-  --popover-foreground: oklch(0.94 0.003 90);
-  --primary: oklch(0.68 0.17 264);
-  --primary-foreground: oklch(0.16 0.004 264);
-  --secondary: oklch(0.24 0.006 264);
-  --secondary-foreground: oklch(0.94 0.003 90);
-  --muted: oklch(0.24 0.006 264);
-  --muted-foreground: oklch(0.64 0.01 90);
-  --accent: oklch(0.28 0.05 264);
-  --accent-foreground: oklch(0.85 0.08 264);
-  --destructive: oklch(0.704 0.191 22.216);
-  /* Lifted and desaturated for the charcoal background — same roles, so
-     markup never needs to know which theme it is in. */
-  --success: oklch(0.72 0.15 150);
-  --success-foreground: oklch(0.16 0.004 264);
+  --background: oklch(0.19 0.008 240);
+  --foreground: oklch(0.93 0.004 85);
+  --card: oklch(0.235 0.01 240);
+  --card-foreground: oklch(0.93 0.004 85);
+  --popover: oklch(0.235 0.01 240);
+  --popover-foreground: oklch(0.93 0.004 85);
+  /* NASA Red lifted just enough to hold on instrument grey. */
+  --primary: oklch(0.66 0.2 30.5);
+  --primary-foreground: oklch(0.15 0.008 240);
+  --secondary: oklch(0.27 0.011 240);
+  --secondary-foreground: oklch(0.93 0.004 85);
+  --muted: oklch(0.27 0.011 240);
+  --muted-foreground: oklch(0.66 0.012 240);
+  --accent: oklch(0.3 0.045 30.5);
+  --accent-foreground: oklch(0.85 0.12 35);
+  --destructive: oklch(0.66 0.2 30.5);
+  --success: oklch(0.74 0.16 145);
+  --success-foreground: oklch(0.15 0.008 240);
   --warning: oklch(0.78 0.14 75);
-  --warning-foreground: oklch(0.16 0.004 264);
-  --info: oklch(0.70 0.13 240);
-  --info-foreground: oklch(0.16 0.004 264);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.68 0.17 264 / 0.5);
-  --chart-1: oklch(0.68 0.17 264);
-  --chart-2: oklch(0.7 0.14 200);
-  --chart-3: oklch(0.75 0.14 150);
-  --chart-4: oklch(0.8 0.14 80);
-  --chart-5: oklch(0.7 0.18 30);
-  --sidebar: oklch(0.19 0.005 264);
-  --sidebar-foreground: oklch(0.94 0.003 90);
-  --sidebar-primary: oklch(0.68 0.17 264);
-  --sidebar-primary-foreground: oklch(0.16 0.004 264);
-  --sidebar-accent: oklch(0.28 0.05 264);
-  --sidebar-accent-foreground: oklch(0.85 0.08 264);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.68 0.17 264 / 0.5);
+  --warning-foreground: oklch(0.15 0.008 240);
+  --info: oklch(0.72 0.1 235);
+  --info-foreground: oklch(0.15 0.008 240);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.66 0.2 30.5 / 0.5);
+  --chart-1: oklch(0.66 0.2 30.5);
+  --chart-2: oklch(0.72 0.1 235);
+  --chart-3: oklch(0.74 0.16 145);
+  --chart-4: oklch(0.78 0.14 75);
+  --chart-5: oklch(0.7 0.02 240);
+  --sidebar: oklch(0.165 0.008 240);
+  --sidebar-foreground: oklch(0.93 0.004 85);
+  --sidebar-primary: oklch(0.66 0.2 30.5);
+  --sidebar-primary-foreground: oklch(0.15 0.008 240);
+  --sidebar-accent: oklch(0.3 0.045 30.5);
+  --sidebar-accent-foreground: oklch(0.85 0.12 35);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.66 0.2 30.5 / 0.5);
 }
 
 @layer base {

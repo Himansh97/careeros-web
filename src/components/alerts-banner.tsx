@@ -47,6 +47,9 @@ export function AlertsBanner() {
         ) : (
           <Inbox className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
         )}
+        <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+          {urgent ? "Caution" : "Advisory"}
+        </span>
         <span className="text-sm font-medium text-foreground">
           {alerts.length} thing{alerts.length === 1 ? "" : "s"} waiting on you
         </span>

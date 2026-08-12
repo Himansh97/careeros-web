@@ -11,6 +11,9 @@ export interface HealthStatus {
     providers: { name: string; configured: boolean; freeTier: string }[];
   };
   notCovered: Record<string, string>;
+  /** Sources that errored on the last fetch. A failed source returns no jobs,
+      which otherwise reads as an employer with no openings. */
+  failedSources?: string[];
 }
 
 export async function getHealth(): Promise<ApiResult<HealthStatus>> {

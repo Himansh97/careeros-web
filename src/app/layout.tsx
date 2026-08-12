@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+import { Geist, Geist_Mono, Archivo } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -16,14 +16,16 @@ const geistMono = Geist_Mono({
 /**
  * The display face, used with restraint — page titles and the score assay only.
  *
- * Everything was Geist Sans, which is a fine neutral and also the reason the
- * app read as any Next.js dashboard built this year. Bricolage is a grotesque
- * with deliberately imperfect proportions; on a product whose entire claim is
- * that a human verified every number, a face that looks drawn rather than
- * generated is the right one. Deliberately not a high-contrast serif — that is
- * the default gesture, not a choice.
+ * Archivo is a grotesque with a genuine expanded axis, which is the vernacular
+ * of NASA signage and of the 1975 Graphics Standards Manual that this palette
+ * comes from. It replaces Bricolage, which was chosen for a different brief:
+ * Bricolage's charm is that it looks hand-drawn, and nothing about flight
+ * operations is hand-drawn.
+ *
+ * Deliberately not a high-contrast serif — that is the default gesture rather
+ * than a choice, and it would read as a magazine, not an instrument.
  */
-const displayFont = Bricolage_Grotesque({
+const displayFont = Archivo({
   variable: "--font-display",
   subsets: ["latin"],
   display: "swap",

@@ -95,7 +95,7 @@ export function AppSidebar() {
         {navSections.map((section) => (
           <div key={section.label}>
             {!collapsed && (
-              <div className="px-2.5 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
+              <div className="px-2.5 pb-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/40">
                 {section.label}
               </div>
             )}
