@@ -99,6 +99,8 @@ export default function ApprovalsPage() {
 
   const pending = allItems.filter((a) => a.status === "pending");
   const countByKind = (kind: ApprovalKind) => pending.filter((a) => a.kind === kind).length;
+  // How many cannot proceed as they stand — the number worth leading with.
+  const held = pending.filter((a) => a.commit?.verdict === "nogo").length;
 
   if (pending.length === 0) {
     return (
@@ -118,7 +120,11 @@ export default function ApprovalsPage() {
     <div className="flex flex-1 flex-col gap-6">
       <PageHeader
         title="Needs Your Attention"
-        description={`${pending.length} item${pending.length === 1 ? "" : "s"} waiting on you.`}
+        description={
+          held > 0
+            ? `${pending.length} waiting · ${held} held by a commit criterion`
+            : `${pending.length} item${pending.length === 1 ? "" : "s"} waiting on you.`
+        }
       />
 
       <Tabs defaultValue={tabs.find((t) => countByKind(t.value) > 0)?.value ?? "application"}>
@@ -136,7 +142,16 @@ export default function ApprovalsPage() {
         </TabsList>
 
         {tabs.map((tab) => {
-          const items = pending.filter((a) => a.kind === tab.value);
+          // Held first, then caution, then clear. A queue sorted by creation
+          // date buries the six that cannot proceed among thirteen that can.
+          const rank = { nogo: 0, caution: 1, go: 2 } as const;
+          const items = pending
+            .filter((a) => a.kind === tab.value)
+            .sort(
+              (a, b) =>
+                (rank[a.commit?.verdict ?? "go"] ?? 2) -
+                (rank[b.commit?.verdict ?? "go"] ?? 2)
+            );
           return (
             <TabsContent key={tab.value} value={tab.value} className="space-y-3">
               {items.length === 0 ? (

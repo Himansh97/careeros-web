@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBadge } from "@/components/score-badge";
+import { CommitBoard } from "@/components/approvals/commit-board";
 import {
   Dialog,
   DialogContent,
@@ -131,6 +132,12 @@ export function ApprovalCard({ item }: { item: ApprovalItem }) {
           </div>
         )}
       </div>
+
+      {/* The criteria before the prose. What holds this one is the thing the
+          decision turns on; the description is context. */}
+      {item.criteria && item.commit && (
+        <CommitBoard criteria={item.criteria} commit={item.commit} />
+      )}
 
       <div className="mt-3 space-y-2 text-sm">
         <p className="text-foreground/80">{item.whatCareerOSWantsToDo}</p>
