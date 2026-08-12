@@ -218,3 +218,41 @@ export interface InterviewPack {
  */
 export const getInterviewPack = (jobId: string) =>
   apiFetch<InterviewPack>(`/api/jobs/${encodeURIComponent(jobId)}/interview-pack`);
+
+export interface ReferralPath {
+  contactId: string | null;
+  name: string | null;
+  title: string | null;
+  email: string | null;
+  score: number;
+  why: string[];
+  role: "recruiter" | "hiring manager" | "peer";
+  shared: string[];
+}
+
+export interface ReferralStrategy {
+  available: boolean;
+  reason?: string;
+  detail?: string;
+  paths?: ReferralPath[];
+  best?: ReferralPath | null;
+  plan?: {
+    openWith: "direct" | "question";
+    steps: { day: number; action: string; why: string }[];
+    askForReferral: boolean;
+    note: string;
+  } | null;
+  note?: string;
+}
+
+/**
+ * Who to approach at this employer, and in what order.
+ *
+ * Ranks contacts already found — it does not find them. No second-degree
+ * connection is ever claimed: CareerOS has no connection graph, and a message
+ * built on an invented link falls apart on contact.
+ */
+export const getReferralStrategy = (jobId: string) =>
+  apiFetch<ReferralStrategy>(
+    `/api/jobs/${encodeURIComponent(jobId)}/referral-strategy`
+  );
