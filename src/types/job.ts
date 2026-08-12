@@ -112,6 +112,21 @@ export interface Job {
    * into "you meet 5 of 11 things listed" — which is how a qualified
    * candidate talks themselves out of applying.
    */
+  /**
+   * What is worth doing next — a different question from where you are
+   * strongest. Deliberately contains no interview-likelihood term: there is not
+   * enough outcome history to compute one honestly, and a number invented from
+   * nothing is the failure this system exists to avoid.
+   */
+  priority?: {
+    score: number;
+    fit: number;
+    friction: { minutes: number; score: number; platform: string; extras: string[]; note: string };
+    trust: { score: number; signals: string[]; concerns: string[]; verdict: string };
+    freshness: { days: number | null; factor: number; note: string };
+    basis: string;
+    excludes: string;
+  };
   posting?: {
     required: string[];
     preferred: string[];
@@ -138,6 +153,7 @@ export interface JobSearchFilters {
 
 export type JobSort =
   | "recommended"
+  | "priority"
   | "best_fit"
   | "newest"
   | "highest_salary"

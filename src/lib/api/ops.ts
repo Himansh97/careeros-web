@@ -134,3 +134,26 @@ export interface CareerAlert {
  */
 export const listAlerts = () =>
   apiFetch<{ alerts: CareerAlert[]; high: number }>("/api/alerts");
+
+export interface SkillGap {
+  skill: string;
+  jobs: number;
+  shareOfTargets: number;
+  requiredIn: number;
+  meanFit: number;
+  examples: string[];
+  weight: number;
+  note: string;
+}
+
+/**
+ * Which missing requirement costs the most across the roles worth applying to.
+ *
+ * Aggregated, not per-job: one resume's gap list says what one employer wanted;
+ * across the target set it says what to go and learn. No time-to-learn estimate
+ * is returned, because that number would be invented.
+ */
+export const listSkillGaps = () =>
+  apiFetch<{ gaps: SkillGap[]; consideredJobs: number; minimumFit: number; note: string }>(
+    "/api/skill-gaps"
+  );

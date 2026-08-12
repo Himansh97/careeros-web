@@ -41,6 +41,23 @@ export function RecruiterAuditPanel({ audit }: { audit: RecruiterAudit }) {
           {/* The gap names a requirement. Offer the one action that can close
               it honestly — recording evidence that exists but was never
               written down — right where the gap is visible. */}
+          {/* Named actions before the generic prompt: "rewrite this bullet to
+              say Financial services" is work; "you are 5 short" is a mood. */}
+          {audit.shortfall.fixes?.length > 0 && (
+            <ul className="mt-2 space-y-1.5 border-t border-current/15 pt-2">
+              {audit.shortfall.fixes.map((fix) => (
+                <li key={fix.requirement} className="flex items-start gap-1.5">
+                  <span className="mt-1 size-1 shrink-0 rounded-full bg-current opacity-60" />
+                  <span>
+                    {fix.action}
+                    {fix.detail && (
+                      <span className="mt-0.5 block opacity-70">&ldquo;{fix.detail}&rdquo;</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
           {audit.shortfall.evidenceBound >= audit.shortfall.tailoringBound &&
             audit.shortfall.missing.length > 0 && (
               <div className="mt-2 flex flex-wrap items-center gap-2">

@@ -52,6 +52,22 @@ export interface ResumeShortfall {
   tailoringBound: number;
   missing: string[];
   summary: string;
+  /**
+   * Named actions, not just a number.
+   *
+   * `fixable: true` means the accomplishment is already on the page and simply
+   * doesn't use the posting's word for it — rewording closes the gap.
+   * `fixable: false` means nothing backs the requirement, so rewording would
+   * be dressing up an absence.
+   */
+  fixes: {
+    requirement: string;
+    kind: "reword" | "evidence";
+    fixable: boolean;
+    action: string;
+    detail: string | null;
+    weight: number;
+  }[];
 }
 
 export interface RecruiterAudit {

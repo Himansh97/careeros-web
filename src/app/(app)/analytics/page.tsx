@@ -5,6 +5,7 @@ import { AlertCircle, Lightbulb } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
+import { SkillGaps } from "@/components/analytics/skill-gaps";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   subscribeApplications,
@@ -107,6 +108,9 @@ export default function AnalyticsPage() {
           title="Analytics"
           description="Funnel conversion, response rates, and observational insights across your applications."
         />
+
+      {/* What to close next, across every role being targeted. */}
+      <SkillGaps />
         <EmptyState
           icon={AlertCircle}
           title="Nothing to analyze yet"

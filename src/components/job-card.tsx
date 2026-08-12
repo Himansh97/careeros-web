@@ -4,6 +4,7 @@ import { Bookmark, X, MapPin, Clock, UserCheck, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime, formatSalary } from "@/lib/format";
 import { ScoreBadge } from "@/components/score-badge";
+import { PriorityChips } from "@/components/jobs/priority-chips";
 import type { Job } from "@/types/job";
 
 interface JobCardProps {
@@ -66,6 +67,9 @@ export function JobCard({ job, selected, onSelect, onToggleSave, onDismiss }: Jo
               </span>
             )}
             <span className="rounded bg-muted px-1.5 py-0.5">{job.source}</span>
+            {/* Effort and staleness sit next to fit, because "worth wanting"
+                and "worth doing next" are different questions. */}
+            {job.priority && <PriorityChips job={job} compact />}
             {/* The source names the board; this names who put it here. A
                 pasted Greenhouse link reads "Greenhouse" like every other, so
                 without this there is no way to spot your own. */}

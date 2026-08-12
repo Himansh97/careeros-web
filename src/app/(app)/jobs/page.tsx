@@ -48,6 +48,7 @@ const fitOptions = [
 
 const sortOptions: { value: JobSort; label: string }[] = [
   { value: "recommended", label: "Recommended" },
+  { value: "priority", label: "Worth doing next" },
   { value: "best_fit", label: "Best Fit" },
   { value: "newest", label: "Newest" },
   { value: "highest_salary", label: "Highest Salary" },
@@ -57,6 +58,12 @@ const sortOptions: { value: JobSort; label: string }[] = [
 function sortJobs(jobs: Job[], sort: JobSort): Job[] {
   const copy = [...jobs];
   switch (sort) {
+    case "priority":
+      // Fit says where you are strongest; this says where the next twenty
+      // minutes go furthest — posting age and application effort included.
+      return copy.sort(
+        (a, b) => (b.priority?.score ?? 0) - (a.priority?.score ?? 0)
+      );
     case "best_fit":
       return copy.sort((a, b) => (b.rawFitScore ?? 0) - (a.rawFitScore ?? 0));
     case "newest":
