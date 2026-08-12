@@ -107,3 +107,22 @@ export function answerQuestion(id: string) {
   if (isLiveApi()) return resolveRemote(id, "approved");
   write(getApprovalsSnapshot().map((a) => (a.id === id ? { ...a, status: "answered" as const } : a)));
 }
+
+
+/**
+ * Resolve every approval a commit criterion is holding.
+ *
+ * Only NO-GO items are touched. A caution is a fact worth stating, not grounds
+ * for clearing something on the candidate's behalf.
+ */
+export async function clearHeldApprovals(): Promise<
+  ApiResult<{ cleared: number; items: { company: string; title: string; heldBy: string[]; why: string }[] }>
+> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  const res = await apiFetch<{ cleared: number; items: { company: string; title: string; heldBy: string[]; why: string }[] }>(
+    "/api/approvals/clear-held",
+    { method: "POST" }
+  );
+  if (res.ok) await refreshApprovals();
+  return res;
+}

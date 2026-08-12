@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { ApprovalCard } from "@/components/approvals/approval-card";
+import { ClearHeld } from "@/components/approvals/clear-held";
 import {
   subscribeApprovals,
   getApprovalsSnapshot,
@@ -125,6 +126,7 @@ export default function ApprovalsPage() {
             ? `${pending.length} waiting · ${held} held by a commit criterion`
             : `${pending.length} item${pending.length === 1 ? "" : "s"} waiting on you.`
         }
+        action={held > 0 ? <ClearHeld count={held} /> : undefined}
       />
 
       <Tabs defaultValue={tabs.find((t) => countByKind(t.value) > 0)?.value ?? "application"}>
