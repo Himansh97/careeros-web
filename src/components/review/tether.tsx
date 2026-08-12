@@ -39,16 +39,20 @@ export function Tether({ sections }: { sections: string[] }) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-y-0 left-6 z-10 hidden w-16 lg:block"
+      // Was `hidden lg:block`, which meant the figure this whole feature is
+      // about did not exist at all on a narrower window — and a scroll
+      // indicator that vanishes exactly when the screen is small enough to
+      // need one is the wrong way round. It narrows instead of disappearing.
+      className="pointer-events-none fixed inset-y-0 left-1 z-10 w-10 sm:left-6 sm:w-16"
       aria-hidden="true"
     >
       {/* The unwalked line, faint. */}
-      <div className="absolute inset-y-8 left-8 w-px bg-foreground/12" />
+      <div className="absolute inset-y-8 left-4 w-px bg-foreground/12 sm:left-8" />
 
       {/* The walked line, drawn to current progress — this is the actual
           read: how much of the review is behind you. */}
       <motion.div
-        className="absolute inset-y-8 left-8 w-px origin-top bg-primary/50"
+        className="absolute inset-y-8 left-4 w-px origin-top bg-primary/50 sm:left-8"
         style={reduced ? { scaleY: 1 } : { scaleY: lineScale }}
       />
 
@@ -57,25 +61,25 @@ export function Tether({ sections }: { sections: string[] }) {
       {sections.map((label, i) => (
         <div
           key={label}
-          className="absolute left-8 flex items-center gap-2"
+          className="absolute left-4 flex items-center gap-2 sm:left-8"
           style={{ top: `${8 + (i * 80) / Math.max(sections.length - 1, 1)}%` }}
         >
           <span className="block h-px w-2 bg-foreground/25" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground/60">
+          <span className="hidden font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground/60 lg:block">
             {label}
           </span>
         </div>
       ))}
 
       <motion.div
-        className="absolute left-0 w-16 text-primary"
+        className="absolute left-0 w-10 text-primary sm:w-16"
         style={
           reduced
             ? { top: "4%" }
             : { top, x: drift }
         }
       >
-        <EvaFigure className="h-14 w-full" />
+        <EvaFigure className="h-10 w-full sm:h-14" />
       </motion.div>
     </div>
   );

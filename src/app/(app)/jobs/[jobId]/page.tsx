@@ -32,9 +32,11 @@ import { MatchBreakdown } from "@/components/match-breakdown";
 import { RequirementMatrix } from "@/components/requirement-matrix";
 import { PostingBreakdown } from "@/components/jobs/posting-breakdown";
 import { ReferralPlan } from "@/components/outreach/referral-plan";
+import { FindPeople } from "@/components/outreach/find-people";
 import { EmptyState } from "@/components/empty-state";
 import { getJob } from "@/lib/api/jobs";
 import { useTailoring } from "@/lib/hooks/use-tailoring";
+import { useJobFlags } from "@/lib/hooks/use-job-flags";
 import { isLiveApi } from "@/lib/api/client";
 import { RecruiterTab } from "@/components/job/recruiter-tab";
 import { formatRelativeTime, formatSalary } from "@/lib/format";
@@ -43,6 +45,7 @@ export default function JobDetailPage() {
   const params = useParams<{ jobId: string }>();
   const router = useRouter();
   const { run: runTailoring, running } = useTailoring(params.jobId);
+  const { toggleSave, dismiss } = useJobFlags();
 
   const { data, isLoading } = useQuery({
     queryKey: ["jobs", "detail", params.jobId],
@@ -146,6 +149,10 @@ export default function JobDetailPage() {
                 ? "View Tailored Resume"
                 : "Tailor Resume"}
           </Button>
+          {/* The contact lookup endpoint existed the whole time with nothing in
+              the interface calling it, so the referral plan below had no saved
+              contacts to rank and rendered nothing on every job. */}
+          <FindPeople jobId={job.id} company={job.company.name} />
           <Button
             size="sm"
             variant="outline"
@@ -166,10 +173,12 @@ export default function JobDetailPage() {
             <Send className="size-3.5" strokeWidth={1.75} />
             {running === "application" ? "Preparing…" : "Prepare Application"}
           </Button>
+          {/* These were bare toasts that persisted nothing — the same bug fixed
+              on the jobs list, missed on this page. They write server-side now. */}
           <Button
             size="sm"
             variant="outline"
-            onClick={() => toast.success(job.saved ? "Removed from saved" : "Job saved")}
+            onClick={() => void toggleSave(job)}
           >
             <Bookmark className="size-3.5" strokeWidth={1.75} fill={job.saved ? "currentColor" : "none"} />
             {job.saved ? "Saved" : "Save"}
@@ -177,8 +186,8 @@ export default function JobDetailPage() {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => {
-              toast("Job dismissed");
+            onClick={async () => {
+              await dismiss(job);
               router.push("/jobs");
             }}
           >

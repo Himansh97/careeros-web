@@ -16,6 +16,24 @@ export interface LiveContact {
   createdAt: string;
 }
 
+/**
+ * A person as the lookup returns them — not yet a saved contact.
+ *
+ * Distinct from `LiveContact`, which is a stored record with an id, a job and
+ * a status. Conflating the two hides that one is a search result and the other
+ * is something the candidate has decided to keep.
+ */
+export interface FoundPerson {
+  name: string;
+  title: string;
+  email: string | null;
+  confidence: number;
+  emailVerified: boolean;
+  linkedinUrl: string | null;
+  isRecruiter: boolean;
+  provider: string;
+}
+
 export interface ContactLookupResult {
   available: boolean;
   reason?: string;
@@ -25,16 +43,7 @@ export interface ContactLookupResult {
   note?: string;
   company?: string;
   jobId?: string;
-  contacts: {
-    name: string;
-    title: string;
-    email: string | null;
-    confidence: number;
-    emailVerified: boolean;
-    linkedinUrl: string | null;
-    isRecruiter: boolean;
-    provider: string;
-  }[];
+  contacts: FoundPerson[];
 }
 
 export async function listContacts(): Promise<

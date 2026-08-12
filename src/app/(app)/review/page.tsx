@@ -102,7 +102,7 @@ export default function ReviewPage() {
     <div className="relative">
       <Tether sections={STOPS} />
 
-      <div className="lg:pl-24">
+      <div className="pl-10 sm:pl-16 lg:pl-24">
         <header className="border-b border-border pb-6">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
             Mission review
