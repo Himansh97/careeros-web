@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -13,9 +13,26 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/**
+ * The display face, used with restraint — page titles and the score assay only.
+ *
+ * Everything was Geist Sans, which is a fine neutral and also the reason the
+ * app read as any Next.js dashboard built this year. Bricolage is a grotesque
+ * with deliberately imperfect proportions; on a product whose entire claim is
+ * that a human verified every number, a face that looks drawn rather than
+ * generated is the right one. Deliberately not a high-contrast serif — that is
+ * the default gesture, not a choice.
+ */
+const displayFont = Bricolage_Grotesque({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "CareerOS",
-  description: "Your AI career operating system.",
+  // Names what it does, not what it is built from.
+  description: "Find roles worth applying to, and know why.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -23,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>

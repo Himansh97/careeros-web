@@ -21,7 +21,7 @@ export function PageHeader({ title, description, action, className }: PageHeader
         {/* Was text-xl. The whole app sat between 12px and 14px — 356 of 373
             type usages were text-xs or text-sm — so nothing announced where
             you were. A page title needs to outrank the body text it sits on. */}
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
           {title}
         </h1>
         {description && (

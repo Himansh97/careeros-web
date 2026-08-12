@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScoreBadge } from "@/components/score-badge";
+import { ScoreAssay } from "@/components/score-assay";
 import { API_URL, apiFetch, isLiveApi } from "@/lib/api/client";
 import { ResumePreview } from "@/components/resume/resume-preview";
 import type { ResumeVersion } from "@/types/resume";
@@ -84,22 +84,38 @@ export function ResumeHeader({ resume, onApprove, applyUrl }: ResumeHeaderProps)
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">
-            {resume.jobTitle} <span className="font-normal text-muted-foreground">@ {resume.companyName}</span>
-          </h1>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span>Raw fit <span className="font-medium text-foreground">{resume.rawFitScore}</span></span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              Resume score <ScoreBadge score={resume.resumeScore} size="sm" />
-            </span>
-            <span>·</span>
-            <span>Version V{resume.version}</span>
-            <Badge variant={resume.status === "approved" ? "default" : "secondary"} className="font-normal">
-              {statusLabel[resume.status]}
-            </Badge>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        {/* The score leads here, stamped with what it rests on. This is the one
+            screen where the number is the entire subject, so it is set at the
+            size of the subject rather than tucked into a metadata row. */}
+        <div className="flex items-start gap-4">
+          <ScoreAssay
+            score={resume.resumeScore}
+            target={85}
+            basis="resume score"
+            size="lg"
+          />
+          <div className="pt-1">
+            <h1 className="font-display text-lg font-semibold leading-tight text-foreground">
+              {resume.jobTitle}
+            </h1>
+            <p className="text-sm text-muted-foreground">{resume.companyName}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>
+                Fit{" "}
+                <span className="font-medium tabular-nums text-foreground">
+                  {resume.rawFitScore}
+                </span>
+              </span>
+              <span>·</span>
+              <span>Version {resume.version}</span>
+              <Badge
+                variant={resume.status === "approved" ? "default" : "secondary"}
+                className="font-normal"
+              >
+                {statusLabel[resume.status]}
+              </Badge>
+            </div>
           </div>
         </div>
 
