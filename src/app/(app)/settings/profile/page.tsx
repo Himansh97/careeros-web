@@ -5,6 +5,8 @@ import { AlertCircle, ShieldCheck, ShieldAlert, Ban } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { ClaimActions } from "@/components/evidence/claim-actions";
+import { AddClaim } from "@/components/evidence/add-claim";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getProfile } from "@/lib/api/profile";
 import { isLiveApi } from "@/lib/api/client";
@@ -144,7 +146,10 @@ export default function CandidateProfilePage() {
         </div>
 
         <div>
-          <h2 className="mb-1 text-sm font-medium text-foreground">Career Evidence Library</h2>
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-medium text-foreground">Career Evidence Library</h2>
+              <AddClaim />
+            </div>
           <p className="mb-3 text-xs text-muted-foreground">
             {verified} verified · {review} need review. A job requirement with no matching
             claim here is a true gap — it gets disclosed, never invented.
@@ -152,9 +157,16 @@ export default function CandidateProfilePage() {
           <div className="divide-y divide-border rounded-lg border border-border bg-card">
             {p.evidence.map((claim) => (
               <div key={claim.id} className="px-4 py-3.5">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <h3 className="text-sm font-medium text-foreground">{claim.employer}</h3>
-                  <StatusPill status={classify(claim.classification, claim.approvedForResume)} />
+                  <div className="flex items-center gap-2">
+                    <StatusPill status={classify(claim.classification, claim.approvedForResume)} />
+                    <ClaimActions
+                      claimId={claim.id}
+                      classification={claim.classification}
+                      approvedForResume={claim.approvedForResume}
+                    />
+                  </div>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">&ldquo;{claim.claim}&rdquo;</p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">

@@ -1,6 +1,7 @@
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { EvidenceCapture } from "@/components/resume/evidence-capture";
 import type { RecruiterAudit, RecruiterDecision } from "@/types/resume";
 
 const decisionStyle: Record<RecruiterDecision, string> = {
@@ -37,6 +38,17 @@ export function RecruiterAuditPanel({ audit }: { audit: RecruiterAudit }) {
             {audit.shortfall.short} short of {audit.shortfall.target}
           </p>
           <p className="mt-0.5 opacity-90">{audit.shortfall.summary}</p>
+          {/* The gap names a requirement. Offer the one action that can close
+              it honestly — recording evidence that exists but was never
+              written down — right where the gap is visible. */}
+          {audit.shortfall.evidenceBound >= audit.shortfall.tailoringBound &&
+            audit.shortfall.missing.length > 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {audit.shortfall.missing.slice(0, 3).map((req) => (
+                  <EvidenceCapture key={req} requirement={req} />
+                ))}
+              </div>
+            )}
         </div>
       )}
 
