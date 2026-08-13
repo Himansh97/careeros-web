@@ -28,27 +28,40 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } fro
  * keeping you company.
  *
  * **It looks at you.** The helmet, and to a much smaller degree the torso,
- * turn toward the pointer. This is the whole reason the figure stops being
- * decorative: presence is attention, not encouragement. It is worth being
- * explicit that this is the *only* honest way to make this thing feel like
- * company in a product that refuses to flatter — a companion that told you
- * things were going well beside "0 responses" would be a worse kind of alone.
- * So it does not speak. It is simply there, and it notices.
+ * turn toward the pointer. Presence is attention before it is anything else.
+ *
+ * It does speak, in `components/companion`, and an earlier version of this
+ * comment argued at length that it should not. That was overruled, correctly:
+ * the objection was to *flattery*, not to speech, and those are separable. It
+ * says only things that are true — real published figures and the real state
+ * of the search, including when that state is silence. "Nothing has come back
+ * yet, I am not going to dress that up" is company. "You've got this" is not.
  *
  * Tracking is driven through motion values off the render path, so following
  * the cursor costs no React renders, and it is disabled entirely under
  * reduced motion.
  */
+/**
+ * How the figure is feeling, which is only ever about something real.
+ *
+ * `alert` fires on a genuine flagged item, `held` while you are actually
+ * dragging it, `sleepy` after real inactivity. None of these are randomised —
+ * a mood that changes for no reason is a mood you learn to ignore.
+ */
+export type Mood = "calm" | "curious" | "sleepy" | "held" | "alert";
+
 export function EvaFigure({
   className,
   /** Static for dense UI; alive wherever it has room to be seen. */
   animate = false,
   /** Turn toward the pointer. On by default wherever the figure animates. */
   watch = true,
+  mood = "calm",
 }: {
   className?: string;
   animate?: boolean;
   watch?: boolean;
+  mood?: Mood;
 }) {
   const reduced = useReducedMotion();
   const moving = animate && !reduced;
@@ -133,8 +146,30 @@ export function EvaFigure({
       aria-hidden="true"
       // Drift and rotation against the tether, on long uneven periods so the
       // loop never becomes a recognisable beat.
-      animate={moving ? { y: [0, -7, 2, 0], rotate: [-2, 1.5, -0.8, -2] } : undefined}
-      transition={moving ? { duration: 12, repeat: Infinity, ease: "easeInOut" } : undefined}
+      animate={
+        moving
+          ? mood === "held"
+            // Being carried: pulled in and steady, not drifting. A figure that
+            // keeps floating while you hold it feels like it is not being held.
+            ? { y: 0, rotate: 0, scale: 0.94 }
+            : mood === "sleepy"
+              // Smaller, slower drift. Nothing droops — this is weightlessness,
+              // there is nothing for a tired body to sag against.
+              ? { y: [0, -3, 1, 0], rotate: [-1, 0.6, -0.4, -1], scale: 1 }
+              : { y: [0, -7, 2, 0], rotate: [-2, 1.5, -0.8, -2], scale: 1 }
+          : undefined
+      }
+      transition={
+        moving
+          ? mood === "held"
+            ? { type: "spring", stiffness: 300, damping: 22 }
+            : {
+                duration: mood === "sleepy" ? 19 : mood === "curious" ? 9 : 12,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }
+          : undefined
+      }
       style={{ originX: 0.5, originY: 0.55 }}
     >
       {/* Life-support pack, behind the shoulders and drawn first so it reads
@@ -161,7 +196,13 @@ export function EvaFigure({
             animate={moving ? { strokeOpacity: [0.2, 0.9, 0.2] } : undefined}
             transition={
               moving
-                ? { duration: 4 + i * 1.7, repeat: Infinity, ease: "easeInOut", delay: i * 0.9 }
+                ? {
+                    duration:
+                      (mood === "alert" ? 1.1 : mood === "sleepy" ? 7 : 4) + i * 1.7,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: i * 0.9,
+                  }
                 : undefined
             }
           />
@@ -180,9 +221,10 @@ export function EvaFigure({
         <circle cx="60" cy="30" r="25" />
         {/* Visor — a shape, not a shine. Sits low and wide like a sun visor
             pulled down, which is also what stops the helmet reading as a face. */}
-        <path
+        <motion.path
           d="M43 24 Q60 14 77 24 Q77 42 60 44 Q43 42 43 24 Z"
-          strokeOpacity={0.55}
+          animate={{ strokeOpacity: mood === "sleepy" ? 0.22 : 0.55 }}
+          transition={{ duration: 1.4 }}
         />
         {/* Helmet light, top-left, as mounted on the real assembly. */}
         <path d="M40 14 l-6 -4" strokeOpacity={0.5} />

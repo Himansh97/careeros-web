@@ -47,9 +47,9 @@ function subscribe(cb: () => void) {
 
 function getSnapshot(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) !== "0";
+    return localStorage.getItem(STORAGE_KEY) === "1";
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -85,70 +85,31 @@ export function CapcomPanel() {
         toggle(!open);
       }
     }
+    function onCompanionTap() {
+      toggle(!open);
+    }
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("careeros:capcom-toggle", onCompanionTap);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("careeros:capcom-toggle", onCompanionTap);
+    };
   }, [open, toggle]);
 
-  const urgent = lines.some((l) => l.tone === "caution");
 
   return (
     <>
-      {/* Collapsed: the crew figure itself, in a porthole, drifting.
-          It was a 14-pixel radio glyph before — which is why the assistant was
-          reported as missing. This is the one element present on every route,
-          so it is the one that has to read as a presence rather than a button. */}
-      {!open && (
-        <motion.button
-          onClick={() => toggle(true)}
-          aria-label="Open CAPCOM"
-          className="group fixed bottom-20 right-4 z-40 flex items-center gap-2.5 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3.5 shadow-md transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:bottom-6"
-          initial={reduced ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={reduced ? undefined : { scale: 1.03 }}
-          whileTap={reduced ? undefined : { scale: 0.97 }}
-          transition={{ type: "spring", stiffness: 400, damping: 28 }}
-        >
-          <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-background text-primary">
-            {/* A slow sweep behind the figure, so the porthole reads as looking
-                out at something rather than as a grey disc. */}
-            {!reduced && (
-              <motion.span
-                className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/10 to-transparent"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-              />
-            )}
-            <EvaFigure className="relative h-8 w-8" animate />
-          </span>
-          <span className="flex flex-col items-start leading-tight">
-            <span className="flex items-center gap-1.5">
-              <span className="relative flex size-1.5">
-                {urgent && (
-                  <span className="absolute inline-flex size-1.5 animate-ping rounded-full bg-warning/70" />
-                )}
-                <span
-                  className={`relative inline-flex size-1.5 rounded-full ${
-                    urgent ? "bg-warning" : "bg-success"
-                  }`}
-                />
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground">
-                Capcom
-              </span>
-            </span>
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-              {urgent ? "Caution" : "All stations go"}
-            </span>
-          </span>
-        </motion.button>
-      )}
+      {/* The collapsed launcher used to live here — a second floating
+          astronaut. `components/companion` is that now: draggable, follows
+          you, and dispatches the toggle below when tapped. Two of them on
+          screen was one too many. */}
 
       <AnimatePresence>
         {open && (
           <motion.aside
             role="complementary"
             aria-label="CAPCOM status"
-            className="fixed bottom-20 right-4 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-card shadow-lg md:bottom-6"
+            className="fixed bottom-28 right-4 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-card shadow-lg md:bottom-6"
             initial={reduced ? false : { opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
