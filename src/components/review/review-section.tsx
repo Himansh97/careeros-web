@@ -20,6 +20,8 @@ export function ReviewSection({
   call,
   heading,
   source,
+  index,
+  total,
   children,
 }: {
   /** The station call sign — the same vocabulary the pre-flight poll uses. */
@@ -27,6 +29,10 @@ export function ReviewSection({
   heading: string;
   /** Which endpoint this reading came from. Stated, not implied. */
   source: string;
+  /** Position in the sequence. Numbering is only used because these really
+   *  are ordered stops — a numbered list of unordered things is decoration. */
+  index?: number;
+  total?: number;
   children: React.ReactNode;
 }) {
   const reduced = useReducedMotion();
@@ -45,6 +51,11 @@ export function ReviewSection({
         transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
       >
         <div className="mb-1 flex flex-wrap items-baseline gap-2">
+          {index !== undefined && total !== undefined && (
+            <span className="font-mono text-[10px] tabular-nums tracking-[0.2em] text-muted-foreground/50">
+              {String(index).padStart(2, "0")}/{String(total).padStart(2, "0")}
+            </span>
+          )}
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
             {call}
           </span>
@@ -52,9 +63,15 @@ export function ReviewSection({
             {source}
           </span>
         </div>
-        <h2 className="font-display text-3xl font-semibold tracking-tight text-foreground">
+        <h2 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {heading}
         </h2>
+        <motion.div
+          className="mt-3 h-px w-full origin-left bg-primary/30"
+          initial={reduced ? false : { scaleX: 0 }}
+          animate={reduced || inView ? { scaleX: 1 } : undefined}
+          transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.1 }}
+        />
         <div className="mt-5">{children}</div>
       </motion.div>
     </section>

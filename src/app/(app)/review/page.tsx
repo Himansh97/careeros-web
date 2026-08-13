@@ -6,6 +6,7 @@ import { AlertCircle } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tether } from "@/components/review/tether";
+import { DepthField } from "@/components/review/depth-field";
 import { Reading, ReviewSection } from "@/components/review/review-section";
 import { listAlerts, listSkillGaps } from "@/lib/api/ops";
 import { listApprovals } from "@/lib/api/approvals";
@@ -100,6 +101,7 @@ export default function ReviewPage() {
 
   return (
     <div className="relative">
+      <DepthField />
       <Tether sections={STOPS} />
 
       <div className="pl-10 sm:pl-16 lg:pl-24">
@@ -116,7 +118,7 @@ export default function ReviewPage() {
           </p>
         </header>
 
-        <ReviewSection call="CREW" heading="You" source="alerts.funnel">
+        <ReviewSection index={1} total={5} call="CREW" heading="You" source="alerts.funnel">
           <div className="grid gap-6 sm:grid-cols-3">
             <Reading value={funnel?.submitted ?? 0} label="applications submitted" />
             <Reading
@@ -138,7 +140,7 @@ export default function ReviewPage() {
           </p>
         </ReviewSection>
 
-        <ReviewSection call="CONSUMABLES" heading="What you can draw on" source="api/evidence">
+        <ReviewSection index={2} total={5} call="CONSUMABLES" heading="What you can draw on" source="api/evidence">
           <div className="grid gap-6 sm:grid-cols-2">
             <Reading value={claims.length} label="claims on record" />
             <Reading
@@ -165,7 +167,7 @@ export default function ReviewPage() {
           )}
         </ReviewSection>
 
-        <ReviewSection call="TRAJECTORY" heading="What is queued" source="api/approvals">
+        <ReviewSection index={3} total={5} call="TRAJECTORY" heading="What is queued" source="api/approvals">
           <div className="grid gap-6 sm:grid-cols-3">
             <Reading value={clear} label="clear to apply" tone={clear ? "success" : "muted"} />
             <Reading value={caution} label="go, with notes" tone={caution ? "warning" : "muted"} />
@@ -181,7 +183,7 @@ export default function ReviewPage() {
           </p>
         </ReviewSection>
 
-        <ReviewSection call="CAUTION" heading="Waiting on you" source="api/alerts">
+        <ReviewSection index={4} total={5} call="CAUTION" heading="Waiting on you" source="api/alerts">
           <div className="grid gap-6 sm:grid-cols-2">
             <Reading
               value={urgent}
@@ -204,7 +206,7 @@ export default function ReviewPage() {
           </ul>
         </ReviewSection>
 
-        <ReviewSection call="NEXT" heading="The next thing" source="derived by severity">
+        <ReviewSection index={5} total={5} call="NEXT" heading="The next thing" source="derived by severity">
           {nextBurn ? (
             <div className="max-w-xl">
               <p className="font-display text-2xl font-semibold leading-snug tracking-tight text-foreground">
