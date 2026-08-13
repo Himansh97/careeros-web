@@ -15,6 +15,7 @@ import { ResumeSection } from "@/components/resume/resume-section";
 import { ModeToggle, type DiffMode } from "@/components/resume/mode-toggle";
 import { RecruiterAuditPanel } from "@/components/resume/recruiter-audit-panel";
 import {
+  approveResume,
   editBullet,
   editResumeField,
   getResume,
@@ -229,10 +230,33 @@ export default function ResumeWorkspacePage() {
       <ResumeHeader
         applyUrl={jobQuery.data?.ok ? jobQuery.data.data.applyUrl : null}
         resume={isApproved ? { ...resume, status: "approved" } : resume}
-        onApprove={() => {
+        onApprove={async () => {
+          // Was pure local state with a toast claiming the feature was not
+          // connected. Approving now records the decision and starts the
+          // recruiter research for this employer — approval is the point at
+          // which a job is worth spending a provider credit on.
+          const res = await approveResume(resume.jobId);
+          if (!res.ok) {
+            toast.error("Couldn't approve", {
+              description:
+                res.reason === "not_connected"
+                  ? "The CareerOS API isn't reachable — start it on port 8000."
+                  : "The backend rejected it.",
+            });
+            return;
+          }
           setApproved(true);
+          await queryClient.invalidateQueries({ queryKey: ["outreach"] });
+          await queryClient.invalidateQueries({ queryKey: ["approvals"] });
+
+          const o = res.data.outreach;
           toast.success("Resume approved", {
-            description: "It's ready to use once application prep is connected.",
+            description: o.drafted
+              ? "Recruiter found and both messages drafted. Nothing was sent."
+              : o.detail ?? "Nothing else was changed.",
+            action: o.drafted
+              ? { label: "Open outreach", onClick: () => router.push("/outreach") }
+              : undefined,
           });
         }}
       />

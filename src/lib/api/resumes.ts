@@ -124,3 +124,28 @@ export async function listResumes(): Promise<ApiResult<ResumeVersion[]>> {
   await new Promise((r) => setTimeout(r, 200));
   return { ok: true, data: Object.values(mockResumes) };
 }
+
+
+/**
+ * Approve the tailored resume, and start the recruiter research.
+ *
+ * The Approve button was pure local state — it flipped a boolean and claimed
+ * the feature was not connected. Approving now records the decision and drafts
+ * the outreach, because approval is the point at which a job is worth spending
+ * a provider credit on. Existing outreach is never overwritten, so re-approving
+ * cannot destroy an edited or already-sent message.
+ *
+ * Nothing is submitted and nothing is sent.
+ */
+export async function approveResume(jobId: string): Promise<
+  ApiResult<{
+    jobId: string;
+    approved: boolean;
+    outreach: { drafted: boolean; reason?: string; detail?: string; status?: string };
+  }>
+> {
+  if (!isLiveApi()) return { ok: false, reason: "not_connected" };
+  return apiFetch(`/api/jobs/${encodeURIComponent(jobId)}/resume/approve`, {
+    method: "POST",
+  });
+}
