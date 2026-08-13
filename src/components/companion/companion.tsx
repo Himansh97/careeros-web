@@ -210,11 +210,25 @@ export function Companion() {
       timer = window.setTimeout(run, 45_000 + Math.random() * 50_000);
     };
 
+    /**
+     * Blocked right now, so try again shortly.
+     *
+     * Deliberately not a full reschedule. The first version pushed a blocked
+     * antic the whole 45-95 seconds out again, and since a thought is on
+     * screen for nine seconds out of every seventeen, that quietly ate about
+     * half of them — including, every single time, the fourteen-second
+     * introduction, which lands inside the first thought window. Measured 44
+     * seconds from mount with no movement at all before this was fixed.
+     */
+    const retrySoon = () => {
+      timer = window.setTimeout(run, 5_000);
+    };
+
     const run = async () => {
-      if (cancelled) return schedule();
+      if (cancelled) return;
       // Never while being carried, never into a tab nobody is watching, and
       // never on top of a thought it is in the middle of having.
-      if (document.hidden || draggingRef.current || thoughtRef.current) return schedule();
+      if (document.hidden || draggingRef.current || thoughtRef.current) return retrySoon();
       try {
         await kinds[Math.floor(Math.random() * kinds.length)]();
       } catch {
@@ -223,8 +237,9 @@ export function Companion() {
       if (!cancelled) schedule();
     };
 
-    // The first one comes sooner, so it introduces itself.
-    timer = window.setTimeout(run, 14_000);
+    // The first one comes sooner, so it introduces itself — but after the
+    // opening thought has had its turn rather than colliding with it.
+    timer = window.setTimeout(run, 21_000);
 
     return () => {
       cancelled = true;
