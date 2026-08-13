@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { animate as tween, AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { EvaFigure, type Mood } from "@/components/review/eva-figure";
 import { nextThought, type Context } from "@/lib/companion/thoughts";
 import { listAlerts } from "@/lib/api/ops";
@@ -12,19 +12,19 @@ import { getSkywatch } from "@/lib/api/skywatch";
 import { isLiveApi } from "@/lib/api/client";
 
 /**
- * The companion. It follows you, and it stays where you put it.
+ * The companion. It lives where you put it, and every so often it comes over.
  *
- * Those sound contradictory and are not — it is how an actual pet behaves. The
- * place you drop it becomes **home**. While you are moving around it trails
- * after the pointer at a lazy distance, keeping out of the way rather than
- * sitting under the cursor. When you go still it wanders back home and settles,
- * and once settled it starts thinking out loud.
+ * It used to trail the pointer continuously, which was the wrong instinct —
+ * something permanently at your elbow is not company, it is a cursor with a
+ * face. Now the place you drop it is **home**, it stays there, and once in a
+ * while it launches off to do something daft: kicks over to wherever you are
+ * working and hangs about a moment, tumbles end over end, pushes off too hard
+ * and gets yanked back by its own tether. Then it drifts home and settles.
  *
- * The laziness lives in the *target*, not the spring. The spring is stiff so
- * dragging feels direct; a slow spring would make it feel like dragging
- * something through syrup. Following is slow because the target is eased
- * toward the pointer a few percent per frame, which is what produces the
- * trailing, unhurried quality rather than a cursor attachment.
+ * Rarity is the entire joke. At roughly one antic a minute you look up and
+ * catch it mid-somersault; at one every five seconds it is wallpaper. The
+ * moves themselves are all things a body actually does in microgravity —
+ * nothing here falls, because there is nothing to fall toward.
  *
  * Drag is implemented on raw pointer events instead of framer's `drag`,
  * because that applies its own transform which would fight the same x/y motion
@@ -40,10 +40,6 @@ import { isLiveApi } from "@/lib/api/client";
  */
 const POS_KEY = "careeros:companion-home";
 const SIZE = 64;
-/** How far it prefers to stay from the pointer. Underfoot is not endearing. */
-const STANDOFF = 104;
-/** Pointer still for this long and it heads home. */
-const SETTLE_AFTER = 2200;
 const IDLE_BEFORE_THINKING = 9_000;
 const THOUGHT_VISIBLE = 9_000;
 const GAP_BETWEEN_THOUGHTS = 8_000;
@@ -80,6 +76,7 @@ export function Companion() {
   const [register, setRegister] = React.useState("wonder");
   const [idleMs, setIdleMs] = React.useState(0);
   const [side, setSide] = React.useState<"left" | "right">("right");
+  const [goofy, setGoofy] = React.useState(false);
 
   // Position is a motion value, so following and dragging never cause a React
   // render — this component would otherwise re-render on every mouse move.
@@ -90,16 +87,19 @@ export function Companion() {
   // first paint has it invisible at the origin rather than visibly jumping
   // from the top-left corner to its corner.
   const opacity = useMotionValue(0);
+  /** Tumble angle. Separate from the figure's own idle rotation so the two
+   *  compose instead of fighting over the same transform. */
+  const spin = useMotionValue(0);
   const x = useSpring(tx, { stiffness: 260, damping: 30, mass: 0.9 });
   const y = useSpring(ty, { stiffness: 260, damping: 30, mass: 0.9 });
 
   const home = React.useRef<Pos>({ x: 0, y: 0 });
   const placed = React.useRef(false);
   const pointer = React.useRef<Pos | null>(null);
-  const lastMove = React.useRef(0);
   const draggingRef = React.useRef(false);
   const grabOffset = React.useRef<Pos>({ x: 0, y: 0 });
   const recent = React.useRef<string[]>([]);
+  const thoughtRef = React.useRef<string | null>(null);
 
   // ── initial placement ────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -115,55 +115,123 @@ export function Companion() {
     opacity.set(1);
   }, [tx, ty, x, y, opacity]);
 
-  // ── follow, then wander home ─────────────────────────────────────────────
+  // Mirrored into a ref so the antics loop can check it without re-subscribing.
+  // Written in an effect, never during render.
+  React.useEffect(() => {
+    thoughtRef.current = thought;
+  }, [thought]);
+
+  // ── antics ───────────────────────────────────────────────────────────────
   React.useEffect(() => {
     if (reduced) return;
 
     const onMove = (e: PointerEvent) => {
       pointer.current = { x: e.clientX, y: e.clientY };
-      lastMove.current = Date.now();
     };
     window.addEventListener("pointermove", onMove, { passive: true });
 
-    let frame = 0;
-    const step = () => {
-      frame = requestAnimationFrame(step);
-      if (draggingRef.current) return;
+    let timer: number;
+    let cancelled = false;
 
-      const now = Date.now();
-      const settled = now - lastMove.current > SETTLE_AFTER;
-      const cur = { x: tx.get(), y: ty.get() };
+    /** Drift back to where it lives, unhurried. */
+    const goHome = () =>
+      Promise.all([
+        tween(tx, home.current.x, { duration: 1.5, ease: [0.33, 0, 0.2, 1] }).finished,
+        tween(ty, home.current.y, { duration: 1.5, ease: [0.33, 0, 0.2, 1] }).finished,
+      ]);
 
-      let goal: Pos;
-      if (settled || !pointer.current) {
-        goal = home.current;
-      } else {
-        // Sit off to one side of the pointer rather than on it, on whichever
-        // side there is room. A pet that stands on your hands is a nuisance.
-        const p = pointer.current;
-        const prefer = p.x > window.innerWidth / 2 ? -1 : 1;
-        goal = clampToViewport({
-          x: p.x + prefer * STANDOFF - SIZE / 2,
-          y: p.y + 36,
-        });
-        // Close enough is close enough — no jitter when already in place.
-        if (Math.hypot(goal.x - cur.x, goal.y - cur.y) < 26) return;
-      }
+    const antics = {
+      /** Kicks over to whatever you are looking at, hangs about, goes home. */
+      async visit() {
+        // If the pointer has not moved yet — keyboard user, fresh load — it
+        // visits the middle of the window instead of silently skipping its
+        // turn and leaving a minute of nothing.
+        const p = pointer.current ?? {
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+        };
+        const side = p.x > window.innerWidth / 2 ? -1 : 1;
+        const spot = clampToViewport({ x: p.x + side * 120 - SIZE / 2, y: p.y + 20 });
+        setGoofy(true);
+        await Promise.all([
+          tween(tx, spot.x, { duration: 1.1, ease: [0.2, 0.8, 0.3, 1] }).finished,
+          tween(ty, spot.y, { duration: 1.1, ease: [0.2, 0.8, 0.3, 1] }).finished,
+        ]);
+        setGoofy(false);
+        // A beat of just being there before it heads back.
+        await new Promise((r) => setTimeout(r, 2600));
+        await goHome();
+      },
 
-      // The laziness. Easing the target rather than softening the spring is
-      // what makes this read as trailing after you instead of being tied to
-      // the cursor.
-      const ease = settled ? 0.035 : 0.06;
-      tx.set(cur.x + (goal.x - cur.x) * ease);
-      ty.set(cur.y + (goal.y - cur.y) * ease);
+      /** A slow forward tumble. Astronauts do this constantly and on purpose. */
+      async somersault() {
+        setGoofy(true);
+        await tween(spin, spin.get() + 360, { duration: 2.4, ease: [0.4, 0, 0.3, 1] })
+          .finished;
+        setGoofy(false);
+      },
+
+      /** Pushes off too hard, runs out of tether, gets snapped back. */
+      async tetherRecoil() {
+        const from = { x: tx.get(), y: ty.get() };
+        const away = clampToViewport({ x: from.x - 190, y: from.y - 90 });
+        setGoofy(true);
+        await Promise.all([
+          tween(tx, away.x, { duration: 0.5, ease: "easeOut" }).finished,
+          tween(ty, away.y, { duration: 0.5, ease: "easeOut" }).finished,
+        ]);
+        await Promise.all([
+          tween(tx, from.x, { type: "spring", stiffness: 210, damping: 9 }).finished,
+          tween(ty, from.y, { type: "spring", stiffness: 210, damping: 9 }).finished,
+          tween(spin, spin.get() + 180, { duration: 1.1 }).finished,
+        ]);
+        setGoofy(false);
+      },
+
+      /** Tumbles across in an arc and comes back, showing off slightly. */
+      async barrelRoll() {
+        const from = { x: tx.get(), y: ty.get() };
+        const over = clampToViewport({ x: from.x - 150, y: from.y - 40 });
+        setGoofy(true);
+        await Promise.all([
+          tween(tx, over.x, { duration: 1.3, ease: "easeInOut" }).finished,
+          tween(ty, over.y, { duration: 1.3, ease: "easeInOut" }).finished,
+          tween(spin, spin.get() + 720, { duration: 1.3, ease: "linear" }).finished,
+        ]);
+        setGoofy(false);
+        await goHome();
+      },
     };
-    frame = requestAnimationFrame(step);
+
+    const kinds = Object.values(antics);
+
+    const schedule = () => {
+      // 45-95 seconds. Rare enough that catching one feels like catching it.
+      timer = window.setTimeout(run, 45_000 + Math.random() * 50_000);
+    };
+
+    const run = async () => {
+      if (cancelled) return schedule();
+      // Never while being carried, never into a tab nobody is watching, and
+      // never on top of a thought it is in the middle of having.
+      if (document.hidden || draggingRef.current || thoughtRef.current) return schedule();
+      try {
+        await kinds[Math.floor(Math.random() * kinds.length)]();
+      } catch {
+        // An interrupted animation is not an error worth surfacing.
+      }
+      if (!cancelled) schedule();
+    };
+
+    // The first one comes sooner, so it introduces itself.
+    timer = window.setTimeout(run, 14_000);
 
     return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
       window.removeEventListener("pointermove", onMove);
-      cancelAnimationFrame(frame);
     };
-  }, [reduced, tx, ty]);
+  }, [reduced, tx, ty, spin]);
 
   // Which side the speech bubble opens on, so it never runs off an edge.
   React.useEffect(() => {
@@ -310,16 +378,18 @@ export function Companion() {
 
   const mood: Mood = dragging
     ? "held"
-    : urgent > 0
-      ? "alert"
-      : thought
-        ? "curious"
-        : idleMs > 120_000
-          ? "sleepy"
-          : "calm";
+    : goofy
+      ? "goofy"
+      : urgent > 0
+        ? "alert"
+        : thought
+          ? "curious"
+          : idleMs > 120_000
+            ? "sleepy"
+            : "calm";
 
   return (
-    <motion.div className="fixed left-0 top-0 z-50" style={{ x, y, opacity, touchAction: "none" }}>
+    <motion.div className="fixed left-0 top-0 z-50" style={{ x, y, rotate: spin, opacity, touchAction: "none" }}>
       <AnimatePresence>
         {thought && !dragging && (
           <motion.div

@@ -48,7 +48,7 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } fro
  * dragging it, `sleepy` after real inactivity. None of these are randomised —
  * a mood that changes for no reason is a mood you learn to ignore.
  */
-export type Mood = "calm" | "curious" | "sleepy" | "held" | "alert";
+export type Mood = "calm" | "curious" | "sleepy" | "held" | "alert" | "goofy";
 
 export function EvaFigure({
   className,
@@ -156,7 +156,9 @@ export function EvaFigure({
               // Smaller, slower drift. Nothing droops — this is weightlessness,
               // there is nothing for a tired body to sag against.
               ? { y: [0, -3, 1, 0], rotate: [-1, 0.6, -0.4, -1], scale: 1 }
-              : { y: [0, -7, 2, 0], rotate: [-2, 1.5, -0.8, -2], scale: 1 }
+              : mood === "goofy"
+                ? { y: [0, -5, 3, 0], rotate: [-6, 6, -4, -6], scale: 1 }
+                : { y: [0, -7, 2, 0], rotate: [-2, 1.5, -0.8, -2], scale: 1 }
           : undefined
       }
       transition={
@@ -164,7 +166,14 @@ export function EvaFigure({
           ? mood === "held"
             ? { type: "spring", stiffness: 300, damping: 22 }
             : {
-                duration: mood === "sleepy" ? 19 : mood === "curious" ? 9 : 12,
+                duration:
+                  mood === "sleepy"
+                    ? 19
+                    : mood === "goofy"
+                      ? 1.6
+                      : mood === "curious"
+                        ? 9
+                        : 12,
                 repeat: Infinity,
                 ease: "easeInOut",
               }
@@ -233,8 +242,16 @@ export function EvaFigure({
       {/* Arms. Outlined limbs with joints, floating out and forward — the
           neutral microgravity posture rather than arms at the sides. */}
       <motion.g
-        animate={moving ? { rotate: [-3.5, 2.5, -1, -3.5] } : undefined}
-        transition={moving ? { duration: 9, repeat: Infinity, ease: "easeInOut" } : undefined}
+        animate={
+          moving
+            ? { rotate: mood === "goofy" ? [-38, 26, -34, -38] : [-3.5, 2.5, -1, -3.5] }
+            : undefined
+        }
+        transition={
+          moving
+            ? { duration: mood === "goofy" ? 1.1 : 9, repeat: Infinity, ease: "easeInOut" }
+            : undefined
+        }
         style={{ originX: "38px", originY: "68px" }}
       >
         <Limb ax={38} ay={68} bx={20} by={84} width={13} />
@@ -244,8 +261,16 @@ export function EvaFigure({
       </motion.g>
 
       <motion.g
-        animate={moving ? { rotate: [3, -3.5, 1, 3] } : undefined}
-        transition={moving ? { duration: 13, repeat: Infinity, ease: "easeInOut" } : undefined}
+        animate={
+          moving
+            ? { rotate: mood === "goofy" ? [30, -24, 34, 30] : [3, -3.5, 1, 3] }
+            : undefined
+        }
+        transition={
+          moving
+            ? { duration: mood === "goofy" ? 0.9 : 13, repeat: Infinity, ease: "easeInOut" }
+            : undefined
+        }
         style={{ originX: "82px", originY: "68px" }}
       >
         <Limb ax={82} ay={68} bx={100} by={84} width={13} />
@@ -256,8 +281,16 @@ export function EvaFigure({
 
       {/* Legs, knees bent, on their own timing so nothing moves in lockstep. */}
       <motion.g
-        animate={moving ? { rotate: [1.8, -2.5, 0.8, 1.8] } : undefined}
-        transition={moving ? { duration: 15, repeat: Infinity, ease: "easeInOut" } : undefined}
+        animate={
+          moving
+            ? { rotate: mood === "goofy" ? [-14, 16, -10, -14] : [1.8, -2.5, 0.8, 1.8] }
+            : undefined
+        }
+        transition={
+          moving
+            ? { duration: mood === "goofy" ? 1.4 : 15, repeat: Infinity, ease: "easeInOut" }
+            : undefined
+        }
         style={{ originX: "60px", originY: "104px" }}
       >
         <Limb ax={48} ay={104} bx={40} by={132} width={15} />
