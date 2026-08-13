@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
+import { CountUp } from "@/components/motion/primitives";
 
 /**
  * One stop in the review.
@@ -102,7 +103,10 @@ export function Reading({
       <div
         className={`font-display text-4xl font-semibold leading-none tracking-tight tabular-nums ${toneClass}`}
       >
-        {value}
+        {/* Counts as it arrives. The readings are the largest type on the page
+            and were the only part of it that never moved, so the eye went to
+            the label rather than the figure. Strings pass straight through. */}
+        {typeof value === "number" ? <CountUp value={value} /> : value}
       </div>
       <div className="mt-1.5 h-px w-full bg-current opacity-15" />
       <div className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">

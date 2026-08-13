@@ -2,6 +2,7 @@
 
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import * as React from "react";
+import { CountUp } from "@/components/motion/primitives";
 
 /**
  * Motivation, without flattery.
@@ -106,7 +107,7 @@ export function FlightLog({ milestones }: { milestones: Milestone[] }) {
                 transition={{ delay: reduced ? 0 : 0.15 + i * 0.08, duration: 0.4 }}
               >
                 <div className="font-display text-2xl font-semibold tabular-nums text-foreground">
-                  {m.value}
+                  {typeof m.value === "number" ? <CountUp value={m.value} /> : m.value}
                 </div>
                 <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                   {m.label}

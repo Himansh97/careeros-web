@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AnimatedNumber } from "@/components/motion/primitives";
+import { CountUp } from "@/components/motion/primitives";
 
 interface MetricCardProps {
   label: string;
@@ -23,9 +23,10 @@ export function MetricCard({ label, value, icon: Icon, hint, className }: Metric
         {Icon && <Icon className="size-3.5 text-muted-foreground/60" strokeWidth={1.75} />}
       </div>
       <div className="mt-1.5 text-2xl font-semibold tracking-tight tabular-nums text-foreground">
-        {/* A metric changing after a run is itself the news, so it counts
-            rather than snapping. Strings pass straight through. */}
-        {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
+        {/* Counts up as the card arrives, and counts again whenever the value
+            moves after a run — a metric changing is itself the news. Strings
+            pass straight through. */}
+        {typeof value === "number" ? <CountUp value={value} /> : value}
       </div>
       {hint && <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div>}
     </div>

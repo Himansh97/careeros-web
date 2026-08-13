@@ -2,9 +2,13 @@
 
 import * as React from "react";
 import {
+  animate,
   AnimatePresence,
   motion,
+  useInView,
+  useMotionValue,
   useReducedMotion,
+  useTransform,
   type Transition,
 } from "framer-motion";
 
@@ -93,59 +97,6 @@ export function MotionList({
 }
 
 /**
- * A number that counts to its value.
- *
- * Only worth it where the number changing is itself the news — a metric that
- * moves after an autopilot run. It counts in integers and lands exactly on the
- * target, because a metric that reads 7.4 mid-flight is worse than one that
- * simply changes.
- */
-export function AnimatedNumber({
-  value,
-  className,
-}: {
-  value: number;
-  className?: string;
-}) {
-  const animate = useMotionSafe();
-  const [display, setDisplay] = React.useState(value);
-  const previous = React.useRef(value);
-
-  React.useEffect(() => {
-    if (!animate || previous.current === value) {
-      previous.current = value;
-      setDisplay(value);
-      return;
-    }
-    const from = previous.current;
-    previous.current = value;
-
-    const steps = Math.min(Math.abs(value - from), 18);
-    if (steps === 0) {
-      setDisplay(value);
-      return;
-    }
-    let step = 0;
-    const id = setInterval(() => {
-      step += 1;
-      if (step >= steps) {
-        setDisplay(value);
-        clearInterval(id);
-        return;
-      }
-      setDisplay(Math.round(from + ((value - from) * step) / steps));
-    }, 26);
-    return () => clearInterval(id);
-  }, [value, animate]);
-
-  return (
-    <span className={className} aria-live="polite">
-      {display.toLocaleString()}
-    </span>
-  );
-}
-
-/**
  * Content that replaces a skeleton.
  *
  * A hard swap from skeleton to data makes a fast response look like a glitch.
@@ -197,5 +148,95 @@ export function Stagger({
         <FadeIn delay={Math.min(i, 6) * 0.035}>{child}</FadeIn>
       ))}
     </div>
+  );
+}
+
+/**
+ * A number that counts up the first time it scrolls into view.
+ *
+ * This replaced an `AnimatedNumber` that only moved when a value *changed*, and
+ * so did nothing at all on first paint. On pages whose entire content is
+ * readings, that left the largest type on the screen as the most inert thing on
+ * it — every figure arrived already at rest, so nothing drew the eye to the
+ * figure rather than the label.
+ *
+ * It still handles the change case, which is why the old one is gone rather
+ * than sitting alongside: `animate` starts from wherever the value currently
+ * is, so a metric that moves after an autopilot run counts from its previous
+ * reading to the new one.
+ *
+ * Counting up is legitimate here for a reason worth stating, because this
+ * codebase refuses decoration: the motion is *about the number*. It draws
+ * attention to the quantity, it lands on exactly the real value, and it never
+ * implies a trend the data does not support — a count from zero is not a claim
+ * about last week, it is an entrance. Zero counts to zero and simply sits
+ * there, which is correct: nothing should make "0 interviews" look eventful.
+ *
+ * The value is driven through a MotionValue rendered as a child, so the DOM
+ * text updates without a React render per frame.
+ *
+ * **It starts at the true value, not at zero.** That ordering is not fussiness.
+ * Starting at zero means the rendered markup says `0` until JavaScript runs and
+ * an observer fires, so any failure along that path — hydration error, a
+ * container the observer never reports on, scripting off — leaves a confident
+ * `0 applications submitted` on screen when the answer is 11. In a product
+ * whose entire claim is that its numbers can be trusted, a *wrong* number is
+ * far worse than an un-animated one. So the truth is what renders, and the
+ * reset to zero happens in a layout effect, before paint, only once we know
+ * motion is wanted. Nobody ever sees the zero unless the count is about to run.
+ */
+export function CountUp({
+  value,
+  className,
+  /** Fires once, when this much of the element has been seen. */
+  amount = 0.6,
+}: {
+  value: number;
+  className?: string;
+  amount?: number;
+}) {
+  const reduced = useReducedMotion();
+  const ref = React.useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, amount });
+
+  const count = useMotionValue(value);
+  const text = useTransform(count, (v) => Math.round(v).toLocaleString());
+  // Whether this instance has already counted. Without it, a value arriving
+  // from a query after the element is on screen would rewind to zero and count
+  // again, which would read as the figure having changed when it had not.
+  const counted = React.useRef(false);
+
+  React.useLayoutEffect(() => {
+    // Before the first paint, and only when the count is actually going to
+    // run. Reduced motion never rewinds, so it simply keeps the real figure.
+    if (reduced || counted.current) return;
+    count.set(0);
+  }, [reduced, count]);
+
+  React.useEffect(() => {
+    if (reduced) {
+      count.set(value);
+      return;
+    }
+    if (!inView) return;
+    counted.current = true;
+    // Duration does not scale with magnitude. 11 and 11,000 take the same
+    // time, because the animation is an entrance and not a measure of size —
+    // a big number that takes visibly longer reads as slower software.
+    const controls = animate(count, value, {
+      duration: 0.9,
+      ease: [0.22, 0.61, 0.36, 1],
+    });
+    return () => controls.stop();
+  }, [inView, value, reduced, count]);
+
+  return (
+    <span ref={ref} className={className}>
+      {/* The ticking text is hidden from assistive tech — announcing every
+          intermediate frame would be unusable — and the real figure is exposed
+          once, beside it. */}
+      <motion.span aria-hidden="true">{text}</motion.span>
+      <span className="sr-only">{value.toLocaleString()}</span>
+    </span>
   );
 }
