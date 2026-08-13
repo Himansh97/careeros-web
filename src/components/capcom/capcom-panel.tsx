@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Radio, X, ChevronRight } from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
 import { EvaFigure } from "@/components/review/eva-figure";
 import { useCapcom, type CapcomLine } from "@/lib/hooks/use-capcom";
 
@@ -93,28 +93,54 @@ export function CapcomPanel() {
 
   return (
     <>
-      {/* Collapsed: a call button that says whether anything needs attention. */}
+      {/* Collapsed: the crew figure itself, in a porthole, drifting.
+          It was a 14-pixel radio glyph before — which is why the assistant was
+          reported as missing. This is the one element present on every route,
+          so it is the one that has to read as a presence rather than a button. */}
       {!open && (
-        <button
+        <motion.button
           onClick={() => toggle(true)}
           aria-label="Open CAPCOM"
-          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 shadow-md transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:bottom-6"
+          className="group fixed bottom-20 right-4 z-40 flex items-center gap-2.5 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3.5 shadow-md transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:bottom-6"
+          initial={reduced ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={reduced ? undefined : { scale: 1.03 }}
+          whileTap={reduced ? undefined : { scale: 0.97 }}
+          transition={{ type: "spring", stiffness: 400, damping: 28 }}
         >
-          <span className="relative flex size-2">
-            {urgent && (
-              <span className="absolute inline-flex size-2 animate-ping rounded-full bg-warning/70" />
+          <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-background text-primary">
+            {/* A slow sweep behind the figure, so the porthole reads as looking
+                out at something rather than as a grey disc. */}
+            {!reduced && (
+              <motion.span
+                className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/10 to-transparent"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+              />
             )}
-            <span
-              className={`relative inline-flex size-2 rounded-full ${
-                urgent ? "bg-warning" : "bg-success"
-              }`}
-            />
+            <EvaFigure className="relative h-8 w-8" animate />
           </span>
-          <Radio className="size-3.5 text-muted-foreground" strokeWidth={1.75} />
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            Capcom
+          <span className="flex flex-col items-start leading-tight">
+            <span className="flex items-center gap-1.5">
+              <span className="relative flex size-1.5">
+                {urgent && (
+                  <span className="absolute inline-flex size-1.5 animate-ping rounded-full bg-warning/70" />
+                )}
+                <span
+                  className={`relative inline-flex size-1.5 rounded-full ${
+                    urgent ? "bg-warning" : "bg-success"
+                  }`}
+                />
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground">
+                Capcom
+              </span>
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+              {urgent ? "Caution" : "All stations go"}
+            </span>
           </span>
-        </button>
+        </motion.button>
       )}
 
       <AnimatePresence>
@@ -128,9 +154,9 @@ export function CapcomPanel() {
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
           >
-            <header className="flex items-center gap-2 border-b border-border px-3 py-2">
-              <span className="size-8 shrink-0 text-primary">
-                <EvaFigure className="h-8 w-full" />
+            <header className="flex items-center gap-2.5 border-b border-border px-3 py-2.5">
+              <span className="grid size-12 shrink-0 place-items-center rounded-md border border-border bg-background text-primary">
+                <EvaFigure className="h-9 w-9" animate />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">

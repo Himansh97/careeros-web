@@ -7,6 +7,8 @@ import { EmptyState } from "@/components/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tether } from "@/components/review/tether";
 import { DepthField } from "@/components/review/depth-field";
+import { FlightLog } from "@/components/review/flight-log";
+import { EvaFigure } from "@/components/review/eva-figure";
 import { Reading, ReviewSection } from "@/components/review/review-section";
 import { listAlerts, listSkillGaps } from "@/lib/api/ops";
 import { listApprovals } from "@/lib/api/approvals";
@@ -33,7 +35,7 @@ import { isLiveApi } from "@/lib/api/client";
  * reassurance next to "0 interviews" would be the one dishonest sentence in an
  * application built to avoid exactly that.
  */
-const STOPS = ["Crew", "Consumables", "Trajectory", "Caution", "Next"];
+const STOPS = ["Crew", "Consumables", "Trajectory", "Caution", "Next", "Log"];
 
 export default function ReviewPage() {
   const live = isLiveApi();
@@ -53,8 +55,12 @@ export default function ReviewPage() {
     );
   }
 
-  const loading =
-    alerts.isLoading || gaps.isLoading || approvals.isLoading || evidence.isLoading;
+  // Skill gaps are deliberately NOT in this gate. That endpoint refetches every
+  // source and rescores the whole target set, so on a cold cache it takes over
+  // thirty seconds — during which the entire review sat as a grey skeleton
+  // waiting on one supplementary sentence. Everything else renders immediately
+  // and the gap line appears when it arrives.
+  const loading = alerts.isLoading || approvals.isLoading || evidence.isLoading;
   if (loading) {
     return (
       <div className="space-y-6">
@@ -67,7 +73,7 @@ export default function ReviewPage() {
 
   // A failed read must not render as zeros. Zero interviews and "could not
   // count interviews" look identical on a dashboard and mean opposite things.
-  const failed = [alerts, gaps, approvals, evidence].some((q) => q.data && !q.data.ok);
+  const failed = [alerts, approvals, evidence].some((q) => q.data && !q.data.ok);
   if (failed) {
     return (
       <EmptyState
@@ -83,6 +89,7 @@ export default function ReviewPage() {
   const alertList = alerts.data?.ok ? alerts.data.data.alerts : [];
   const urgent = alerts.data?.ok ? alerts.data.data.high : 0;
   const topGaps = gaps.data?.ok ? gaps.data.data.gaps : [];
+  const gapsPending = gaps.isLoading;
   const claims = evidence.data?.ok ? evidence.data.data.claims : [];
   const approved = evidence.data?.ok ? evidence.data.data.approvedForResume : 0;
   const pending = approvals.data?.ok ? approvals.data.data.filter((a) => a.status === "pending") : [];
@@ -105,7 +112,8 @@ export default function ReviewPage() {
       <Tether sections={STOPS} />
 
       <div className="pl-10 sm:pl-16 lg:pl-24">
-        <header className="border-b border-border pb-6">
+        <header className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-6">
+          <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
             Mission review
           </p>
@@ -116,9 +124,15 @@ export default function ReviewPage() {
             Read live, every figure sourced. State only — trend needs history this
             search does not have yet.
           </p>
+          </div>
+          {/* Large and moving. The figure existed before at 32 pixels and
+              static, which is indistinguishable from not existing. */}
+          <span className="hidden w-24 shrink-0 text-primary sm:block">
+            <EvaFigure className="h-32 w-full" animate />
+          </span>
         </header>
 
-        <ReviewSection index={1} total={5} call="CREW" heading="You" source="alerts.funnel">
+        <ReviewSection index={1} total={6} call="CREW" heading="You" source="alerts.funnel">
           <div className="grid gap-6 sm:grid-cols-3">
             <Reading value={funnel?.submitted ?? 0} label="applications submitted" />
             <Reading
@@ -140,7 +154,7 @@ export default function ReviewPage() {
           </p>
         </ReviewSection>
 
-        <ReviewSection index={2} total={5} call="CONSUMABLES" heading="What you can draw on" source="api/evidence">
+        <ReviewSection index={2} total={6} call="CONSUMABLES" heading="What you can draw on" source="api/evidence">
           <div className="grid gap-6 sm:grid-cols-2">
             <Reading value={claims.length} label="claims on record" />
             <Reading
@@ -153,6 +167,12 @@ export default function ReviewPage() {
               }
             />
           </div>
+          {gapsPending && (
+            <p className="mt-6 text-sm text-muted-foreground">
+              Still counting which missing requirement costs you the most — that
+              reading rescores every open role, so it lands after the rest.
+            </p>
+          )}
           {gap && (
             <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
               Largest gap:{" "}
@@ -167,7 +187,7 @@ export default function ReviewPage() {
           )}
         </ReviewSection>
 
-        <ReviewSection index={3} total={5} call="TRAJECTORY" heading="What is queued" source="api/approvals">
+        <ReviewSection index={3} total={6} call="TRAJECTORY" heading="What is queued" source="api/approvals">
           <div className="grid gap-6 sm:grid-cols-3">
             <Reading value={clear} label="clear to apply" tone={clear ? "success" : "muted"} />
             <Reading value={caution} label="go, with notes" tone={caution ? "warning" : "muted"} />
@@ -183,7 +203,7 @@ export default function ReviewPage() {
           </p>
         </ReviewSection>
 
-        <ReviewSection index={4} total={5} call="CAUTION" heading="Waiting on you" source="api/alerts">
+        <ReviewSection index={4} total={6} call="CAUTION" heading="Waiting on you" source="api/alerts">
           <div className="grid gap-6 sm:grid-cols-2">
             <Reading
               value={urgent}
@@ -206,7 +226,7 @@ export default function ReviewPage() {
           </ul>
         </ReviewSection>
 
-        <ReviewSection index={5} total={5} call="NEXT" heading="The next thing" source="derived by severity">
+        <ReviewSection index={5} total={6} call="NEXT" heading="The next thing" source="derived by severity">
           {nextBurn ? (
             <div className="max-w-xl">
               <p className="font-display text-2xl font-semibold leading-snug tracking-tight text-foreground">
@@ -238,6 +258,52 @@ export default function ReviewPage() {
               Nothing outstanding and nothing queued.
             </p>
           )}
+        </ReviewSection>
+
+        {/* Motivation that is true. Real words from people who did hard things,
+            and counts from the candidate's own record — never encouragement,
+            which beside "0 interviews" would be the one dishonest line here. */}
+        <ReviewSection
+          index={6}
+          total={6}
+          call="LOG"
+          heading="Why keep going"
+          source="mission record + your own counts"
+        >
+          <FlightLog
+            milestones={[
+              {
+                value: claims.length,
+                label: "accomplishments documented and traceable to a source",
+                reached: claims.length > 0,
+              },
+              {
+                value: approved,
+                label: "cleared to appear on a resume",
+                reached: approved > 0,
+              },
+              {
+                value: funnel?.submitted ?? 0,
+                label: "applications actually sent",
+                reached: (funnel?.submitted ?? 0) > 0,
+              },
+              {
+                value: clear,
+                label: "queued and passing every commit criterion",
+                reached: clear > 0,
+              },
+              {
+                value: funnel?.responded ?? 0,
+                label: "employer responses",
+                reached: (funnel?.responded ?? 0) > 0,
+              },
+              {
+                value: funnel?.interviews ?? 0,
+                label: "interviews",
+                reached: (funnel?.interviews ?? 0) > 0,
+              },
+            ]}
+          />
         </ReviewSection>
       </div>
     </div>

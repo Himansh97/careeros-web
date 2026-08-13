@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useSpring, useTransform } from "framer-motion";
+import { useContainerScroll } from "@/lib/hooks/use-container-scroll";
 
 /**
  * Depth behind the review, composed rather than rendered.
@@ -10,19 +11,52 @@ import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "fr
  * renderer: the sense of depth comes from relative motion, which CSS transforms
  * do perfectly well and for no bundle cost.
  *
- * Deliberately not a starfield. Every product that reaches for "space" reaches
- * for scattered dots, and it would fight the printed-manual identity this app
- * committed to. What moves here instead is instrumentation — a horizon line, a
- * measurement grid, a range scale — which is the vernacular of a flight display
- * and encodes the one true thing about this page: you are travelling through it.
+ * There are stars, and there was an argument about that. The first version
+ * refused them as a cliché and shipped instrumentation only — a grid, a
+ * horizon, range ticks — which was disciplined and read as an admin panel with
+ * a line on it. The cliché is not stars; it is *lazy* stars: one size, one
+ * opacity, evenly scattered, drifting as a single plane.
+ *
+ * These are built the way a real field looks. Three depths at different rates,
+ * sizes and brightness correlated with depth, positions from a seeded generator
+ * so they cluster unevenly the way real ones do, and only the nearest layer
+ * twinkles. The instrumentation stays on top of them, because the horizon and
+ * the range scale are what make this a flight display rather than a screensaver.
  *
  * Everything is behind the content at very low contrast, and it disappears
  * entirely under reduced motion. A background that competes with the readings
  * would be decoration, which is what this whole design pass was against.
  */
+/**
+ * Positions from a seeded generator rather than Math.random.
+ *
+ * Two reasons. Random positions differ between server and client render, which
+ * React reports as a hydration mismatch. And a real star field is not uniform —
+ * a deterministic sequence with uneven spacing looks more like the sky than an
+ * even scatter does.
+ */
+function field(count: number, seed: number) {
+  const out: { x: number; y: number }[] = [];
+  let s = seed;
+  for (let i = 0; i < count; i += 1) {
+    s = (s * 16807) % 2147483647;
+    const x = (s / 2147483647) * 100;
+    s = (s * 16807) % 2147483647;
+    const y = (s / 2147483647) * 100;
+    out.push({ x, y });
+  }
+  return out;
+}
+
+const STARS = {
+  far: field(60, 12345),
+  mid: field(28, 98765),
+  near: field(12, 55555),
+};
+
 export function DepthField() {
   const reduced = useReducedMotion();
-  const { scrollYProgress } = useScroll();
+  const scrollYProgress = useContainerScroll();
   const progress = useSpring(scrollYProgress, {
     stiffness: 80,
     damping: 26,
@@ -35,6 +69,11 @@ export function DepthField() {
   const near = useTransform(progress, [0, 1], ["0%", "-45%"]);
   const horizonY = useTransform(progress, [0, 1], ["62%", "24%"]);
   const fade = useTransform(progress, [0, 0.08, 0.9, 1], [0, 1, 1, 0.2]);
+  // Stars drift more slowly than the instrumentation in front of them, which
+  // is what puts them behind it.
+  const starsFar = useTransform(progress, [0, 1], ["0%", "-4%"]);
+  const starsMid = useTransform(progress, [0, 1], ["0%", "-12%"]);
+  const starsNear = useTransform(progress, [0, 1], ["0%", "-26%"]);
 
   // Reduced motion gets nothing at all rather than a static version: the whole
   // point of these layers is the relative movement, so without it they are
@@ -46,6 +85,42 @@ export function DepthField() {
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       aria-hidden="true"
     >
+      {/* Three star depths. Size and brightness track depth, so the nearest
+          layer is the one you notice moving. */}
+      <motion.div className="absolute inset-0" style={{ y: starsFar }}>
+        {STARS.far.map((s, i) => (
+          <span
+            key={`f${i}`}
+            className="absolute rounded-full bg-foreground"
+            style={{ left: `${s.x}%`, top: `${s.y}%`, width: 1, height: 1, opacity: 0.18 }}
+          />
+        ))}
+      </motion.div>
+      <motion.div className="absolute inset-0" style={{ y: starsMid }}>
+        {STARS.mid.map((s, i) => (
+          <span
+            key={`m${i}`}
+            className="absolute rounded-full bg-foreground"
+            style={{ left: `${s.x}%`, top: `${s.y}%`, width: 1.5, height: 1.5, opacity: 0.3 }}
+          />
+        ))}
+      </motion.div>
+      <motion.div className="absolute inset-0" style={{ y: starsNear }}>
+        {STARS.near.map((s, i) => (
+          <motion.span
+            key={`n${i}`}
+            className="absolute rounded-full bg-foreground"
+            style={{ left: `${s.x}%`, top: `${s.y}%`, width: 2, height: 2 }}
+            animate={{ opacity: [0.5, 0.15, 0.5] }}
+            transition={{
+              duration: 3 + (i % 5),
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 0.4,
+            }}
+          />
+        ))}
+      </motion.div>
       {/* Far plane — a measurement grid, barely there. */}
       <motion.div
         className="absolute inset-x-0 -top-[10%] h-[140%] opacity-[0.05]"

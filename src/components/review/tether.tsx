@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useSpring, useTransform } from "framer-motion";
+import { useContainerScroll } from "@/lib/hooks/use-container-scroll";
 import { EvaFigure } from "@/components/review/eva-figure";
 
 /**
@@ -21,7 +22,7 @@ import { EvaFigure } from "@/components/review/eva-figure";
  */
 export function Tether({ sections }: { sections: string[] }) {
   const reduced = useReducedMotion();
-  const { scrollYProgress } = useScroll();
+  const scrollYProgress = useContainerScroll();
 
   // Springing the raw progress stops the figure jittering on trackpad scroll,
   // which on a thin line is very visible.
@@ -43,9 +44,16 @@ export function Tether({ sections }: { sections: string[] }) {
       // about did not exist at all on a narrower window — and a scroll
       // indicator that vanishes exactly when the screen is small enough to
       // need one is the wrong way round. It narrows instead of disappearing.
-      className="pointer-events-none fixed inset-y-0 left-1 z-10 w-10 sm:left-6 sm:w-16"
+      //
+      // Absolute-inside-the-page rather than fixed-to-the-viewport. Fixed
+      // measured from the window's left edge, which put the tether — line,
+      // ticks and figure — straight on top of the app sidebar, so the crew
+      // figure drifted across "Recruiter Messages". The sticky child restores
+      // the viewport-pinned behaviour the scroll mapping needs.
+      className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 sm:w-16"
       aria-hidden="true"
     >
+    <div className="sticky top-0 h-screen">
       {/* The unwalked line, faint. */}
       <div className="absolute inset-y-8 left-4 w-px bg-foreground/12 sm:left-8" />
 
@@ -79,8 +87,9 @@ export function Tether({ sections }: { sections: string[] }) {
             : { top, x: drift }
         }
       >
-        <EvaFigure className="h-10 w-full sm:h-14" />
+        <EvaFigure className="h-12 w-full sm:h-16" animate />
       </motion.div>
+    </div>
     </div>
   );
 }
