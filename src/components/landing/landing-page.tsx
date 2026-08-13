@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { StarLayers } from "@/components/landing/star-layers";
+import { ShootingStars } from "@/components/landing/shooting-stars";
+import { SkyNow } from "@/components/landing/sky-now";
 import { OrbitalField } from "@/components/landing/orbital-field";
 import { EvaFigure } from "@/components/review/eva-figure";
 import { CountUp } from "@/components/motion/primitives";
@@ -50,6 +52,7 @@ export function LandingPage() {
   return (
     <div className="relative min-h-screen bg-background text-foreground">
       <StarLayers />
+      <ShootingStars />
 
       <Nav />
 
@@ -125,6 +128,13 @@ export function LandingPage() {
 
         <div className="relative h-[560px] border-y border-border sm:h-[620px]">
           <OrbitalField onSelect={setSelected} selectedId={selected.id} />
+        </div>
+
+        {/* Live feeds, directly beneath the field of catalogued bodies — the
+            static ones above are where things are, this is what they are
+            doing right now. */}
+        <div className="mx-auto max-w-6xl border-b border-border px-6 py-10">
+          <SkyNow />
         </div>
 
         {/* The readout for whichever body is selected. */}

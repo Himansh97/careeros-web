@@ -68,8 +68,11 @@ export function AppSidebar() {
           collapsed ? "justify-center" : "justify-between"
         )}
       >
+        {/* The wordmark goes home, and home is now the landing page rather
+            than the dashboard. Before this there was no route back to `/` at
+            all — you had to edit the URL by hand. */}
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2 font-medium">
+          <Link href="/" className="flex items-center gap-2 font-medium">
             <span className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Sparkles className="size-3.5" strokeWidth={2} />
             </span>
