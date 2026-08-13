@@ -2,6 +2,7 @@ import { SidebarProvider } from "@/components/app-shell/sidebar-context";
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { TopNav } from "@/components/app-shell/top-nav";
 import { MobileNav } from "@/components/app-shell/mobile-nav";
+import { CapcomPanel } from "@/components/capcom/capcom-panel";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </main>
         </div>
+        {/* CAPCOM follows you across the app, relaying what the stations
+            report about the screen you are on. Dismissible and remembered. */}
+        <CapcomPanel />
         <MobileNav />
       </div>
     </SidebarProvider>
