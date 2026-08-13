@@ -14,12 +14,14 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { ApprovalCard } from "@/components/approvals/approval-card";
 import { ClearHeld } from "@/components/approvals/clear-held";
+import { MotionList, MotionListItem } from "@/components/motion/primitives";
 import {
   subscribeApprovals,
   getApprovalsSnapshot,
+  getApprovalsServerSnapshot,
   getApprovalsLoadState,
 } from "@/lib/api/approvals";
-import type { ApprovalItem, ApprovalKind } from "@/types/approval";
+import type { ApprovalKind } from "@/types/approval";
 
 // A data source exists if either the live backend or the mock layer is on.
 const hasDataSource = () =>
@@ -38,7 +40,7 @@ export default function ApprovalsPage() {
   const allItems = React.useSyncExternalStore(
     subscribeApprovals,
     getApprovalsSnapshot,
-    () => [] as ApprovalItem[]
+    getApprovalsServerSnapshot
   );
   // "You're all caught up" is a dangerous thing to say when the truth is that
   // the queue could not be loaded — the user would stop checking.
@@ -163,7 +165,17 @@ export default function ApprovalsPage() {
                   description="Nothing in this category needs your attention right now."
                 />
               ) : (
-                items.map((item) => <ApprovalCard key={item.id} item={item} />)
+                // Wrapped so a decision reads as a decision. Approving or
+                // clearing an item used to make its card blink out of
+                // existence, which is indistinguishable from a render bug;
+                // sliding it away says "that went somewhere because you acted".
+                <MotionList className="space-y-3">
+                  {items.map((item) => (
+                    <MotionListItem key={item.id} layoutId={item.id}>
+                      <ApprovalCard item={item} />
+                    </MotionListItem>
+                  ))}
+                </MotionList>
               )}
             </TabsContent>
           );

@@ -1,5 +1,6 @@
 import { pipelineColumns, type ApplicationRecord } from "@/types/application";
 import { ApplicationCard } from "@/components/applications/application-card";
+import { MotionList, MotionListItem } from "@/components/motion/primitives";
 
 export function BoardView({ applications }: { applications: ApplicationRecord[] }) {
   return (
@@ -20,7 +21,17 @@ export function BoardView({ applications }: { applications: ApplicationRecord[] 
                   Empty
                 </div>
               ) : (
-                items.map((app) => <ApplicationCard key={app.id} application={app} />)
+                // `layoutId` is the application's own id, which is unique
+                // across every column — so when a status changes, the card
+                // travels from Applied to Interview instead of vanishing here
+                // and appearing there. On a board, that movement *is* the news.
+                <MotionList className="flex flex-col gap-2">
+                  {items.map((app) => (
+                    <MotionListItem key={app.id} layoutId={app.id}>
+                      <ApplicationCard application={app} />
+                    </MotionListItem>
+                  ))}
+                </MotionList>
               )}
             </div>
           </div>

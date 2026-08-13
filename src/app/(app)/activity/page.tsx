@@ -9,10 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   subscribeApplications,
   getApplicationsSnapshot,
+  getApplicationsServerSnapshot,
   getApplicationsLoadState,
 } from "@/lib/api/applications";
 import { formatRelativeTime } from "@/lib/format";
-import type { ApplicationRecord } from "@/types/application";
 
 // A data source exists if either the live backend or the mock layer is on.
 const hasDataSource = () =>
@@ -24,7 +24,7 @@ export default function ActivityPage() {
   const apps = React.useSyncExternalStore(
     subscribeApplications,
     getApplicationsSnapshot,
-    () => [] as ApplicationRecord[]
+    getApplicationsServerSnapshot
   );
   // An audit log that silently shows nothing when it cannot be read is worse
   // than one that says it cannot be read.

@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { isLiveApi } from "@/lib/api/client";
 import { listFollowUps, setOutreachStatus } from "@/lib/api/ops";
 import { formatRelativeTime } from "@/lib/format";
+import { MotionList, MotionListItem } from "@/components/motion/primitives";
 
 export default function FollowUpsPage() {
   const live = isLiveApi();
@@ -85,9 +86,9 @@ export default function FollowUpsPage() {
           className="flex-1"
         />
       ) : (
-        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+        <MotionList className="divide-y divide-border rounded-lg border border-border bg-card">
           {items.map((f) => (
-            <div key={f.id} className="flex items-center gap-4 px-4 py-3.5">
+            <MotionListItem key={f.id} layoutId={f.id} className="flex items-center gap-4 px-4 py-3.5">
               <div
                 className={`flex size-9 shrink-0 items-center justify-center rounded-md ${
                   f.overdue ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -115,9 +116,9 @@ export default function FollowUpsPage() {
                 <CheckCheck className="size-3.5" strokeWidth={1.75} />
                 They replied
               </Button>
-            </div>
+            </MotionListItem>
           ))}
-        </div>
+        </MotionList>
       )}
     </div>
   );

@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listContacts } from "@/lib/api/contacts";
 import { isLiveApi } from "@/lib/api/client";
 import { mockContacts } from "@/lib/mock/outreach";
+import { Stagger } from "@/components/motion/primitives";
 
 // A data source exists if either the live backend or the mock layer is on.
 const hasDataSource = () =>
@@ -89,7 +90,7 @@ export default function ContactsPage() {
             className="flex-1"
           />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Stagger className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {contacts.map((c) => (
               <div key={c.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start justify-between gap-2">
@@ -138,7 +139,7 @@ export default function ContactsPage() {
                 )}
               </div>
             ))}
-          </div>
+          </Stagger>
         )}
       </div>
     );

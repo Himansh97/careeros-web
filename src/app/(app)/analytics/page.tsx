@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   subscribeApplications,
   getApplicationsSnapshot,
+  getApplicationsServerSnapshot,
   getApplicationsLoadState,
 } from "@/lib/api/applications";
 import type { ApplicationRecord } from "@/types/application";
@@ -63,7 +64,7 @@ export default function AnalyticsPage() {
   const apps = React.useSyncExternalStore(
     subscribeApplications,
     getApplicationsSnapshot,
-    () => [] as ApplicationRecord[]
+    getApplicationsServerSnapshot
   );
   // A funnel of zeroes is a claim about the pipeline. Only make it when the
   // pipeline was actually read.

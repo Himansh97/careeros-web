@@ -126,3 +126,18 @@ export async function clearHeldApprovals(): Promise<
   if (res.ok) await refreshApprovals();
   return res;
 }
+
+/**
+ * The snapshot React uses during server render, as one stable reference.
+ *
+ * React calls `getServerSnapshot` on every render and compares the result by
+ * identity. An inline `() => []` hands back a new array each time, so React
+ * sees state that never stops changing and warns that it will loop — which it
+ * did, on every page that read this store. Six call sites each had their own
+ * inline literal; they all share this one now.
+ */
+const EMPTY_APPROVALITEM: ApprovalItem[] = [];
+
+export function getApprovalsServerSnapshot(): ApprovalItem[] {
+  return EMPTY_APPROVALITEM;
+}

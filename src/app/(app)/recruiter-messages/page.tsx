@@ -9,6 +9,7 @@ import { MessageCard } from "@/components/recruiter-messages/message-card";
 import { PageHeader } from "@/components/page-header";
 import { listApplications } from "@/lib/api/applications";
 import { listRecruiterMessages } from "@/lib/api/recruiter-messages";
+import { Stagger } from "@/components/motion/primitives";
 
 export default function RecruiterMessagesPage() {
   const applicationId: string | undefined = undefined;
@@ -123,6 +124,10 @@ export default function RecruiterMessagesPage() {
                 </Button>
               </div>
             )}
+          {/* Staggered rather than all-at-once: these arrive together after a
+              Gmail reconcile, and a sequence reads as a fetch landing where a
+              simultaneous appearance reads as a page swap. */}
+          <Stagger className="space-y-3">
           {messages.map((message) => {
             const application = message.applicationId
               ? applicationById.get(message.applicationId)
@@ -146,6 +151,7 @@ export default function RecruiterMessagesPage() {
               />
             );
           })}
+          </Stagger>
         </div>
       )}
     </div>

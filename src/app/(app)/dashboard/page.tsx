@@ -23,14 +23,15 @@ import { MetricCard } from "@/components/metric-card";
 import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
 import { AlertsBanner } from "@/components/alerts-banner";
+import { MotionList, MotionListItem, Stagger } from "@/components/motion/primitives";
 import { searchJobs } from "@/lib/api/jobs";
 import { useAutopilot } from "@/lib/hooks/use-autopilot";
 import { useJobFlags } from "@/lib/hooks/use-job-flags";
 import { formatRelativeTime } from "@/lib/format";
-import { subscribeApplications, getApplicationsSnapshot } from "@/lib/api/applications";
-import { subscribeApprovals, getApprovalsSnapshot } from "@/lib/api/approvals";
-import type { ApplicationRecord } from "@/types/application";
-import type { ApprovalItem } from "@/types/approval";
+import { subscribeApplications, getApplicationsSnapshot,
+  getApplicationsServerSnapshot } from "@/lib/api/applications";
+import { subscribeApprovals, getApprovalsSnapshot,
+  getApprovalsServerSnapshot } from "@/lib/api/approvals";
 
 /** "Good morning" was hardcoded, so it greeted the user that way at midnight. */
 function greeting(hour: number): string {
@@ -54,12 +55,12 @@ export default function DashboardPage() {
   const applications = React.useSyncExternalStore(
     subscribeApplications,
     getApplicationsSnapshot,
-    () => [] as ApplicationRecord[]
+    getApplicationsServerSnapshot
   );
   const approvals = React.useSyncExternalStore(
     subscribeApprovals,
     getApprovalsSnapshot,
-    () => [] as ApprovalItem[]
+    getApprovalsServerSnapshot
   );
 
   const notConnected = data?.ok === false && data.reason === "not_connected";
@@ -115,11 +116,14 @@ export default function DashboardPage() {
           matters less than the thing that has been sitting unsent for days. */}
       <AlertsBanner />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {/* Staggered so the row reads left-to-right as it lands rather than
+          appearing all at once — the same order you read it in. Capped inside
+          Stagger, so it stays response rather than lag. */}
+      <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {metrics.map((m) => (
           <MetricCard key={m.label} label={m.label} value={m.value} icon={m.icon} />
         ))}
-      </div>
+      </Stagger>
 
       {/* This pill read "Idle" unconditionally, including mid-run. It now
           reflects GET /api/automation. */}
@@ -184,17 +188,20 @@ export default function DashboardPage() {
             }
           />
         ) : (
-          <div className="space-y-2">
+          // Dismissing from here removes the row; the exit is what tells you
+          // the dismiss landed rather than the list having re-fetched.
+          <MotionList className="space-y-2">
             {topOpportunities.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                onSelect={(j) => router.push(`/jobs/${j.id}`)}
-                onToggleSave={() => void toggleSave(job)}
-                onDismiss={() => void dismiss(job)}
-              />
+              <MotionListItem key={job.id} layoutId={`dash-${job.id}`}>
+                <JobCard
+                  job={job}
+                  onSelect={(j) => router.push(`/jobs/${j.id}`)}
+                  onToggleSave={() => void toggleSave(job)}
+                  onDismiss={() => void dismiss(job)}
+                />
+              </MotionListItem>
             ))}
-          </div>
+          </MotionList>
         )}
       </div>
     </div>

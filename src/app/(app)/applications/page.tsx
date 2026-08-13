@@ -12,9 +12,9 @@ import { TableView } from "@/components/applications/table-view";
 import {
   subscribeApplications,
   getApplicationsSnapshot,
+  getApplicationsServerSnapshot,
   getApplicationsLoadState,
 } from "@/lib/api/applications";
-import type { ApplicationRecord } from "@/types/application";
 
 // A data source exists if either the live backend or the mock layer is on.
 const hasDataSource = () =>
@@ -39,7 +39,7 @@ export default function ApplicationsPage() {
   const applications = React.useSyncExternalStore(
     subscribeApplications,
     getApplicationsSnapshot,
-    () => [] as ApplicationRecord[]
+    getApplicationsServerSnapshot
   );
   // Without this, a backend that is down looks exactly like an empty pipeline.
   const loadState = React.useSyncExternalStore(
