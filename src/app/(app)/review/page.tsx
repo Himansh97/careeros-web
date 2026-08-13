@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tether } from "@/components/review/tether";
 import { DepthField } from "@/components/review/depth-field";
+import { ProgressiveBlur } from "@/components/progressive-blur";
 import { FlightLog } from "@/components/review/flight-log";
 import { EvaFigure } from "@/components/review/eva-figure";
 import { Reading, ReviewSection } from "@/components/review/review-section";
@@ -110,6 +111,24 @@ export default function ReviewPage() {
     <div className="relative">
       <DepthField />
       <Tether sections={STOPS} />
+
+      {/* Absolute-in-page with a sticky child, the same shape the tether
+          needed: `fixed` would measure from the window edge and blur across
+          the sidebar. Above the content (z-20) because a backdrop-filter can
+          only blur what is painted beneath it, and click-through so it never
+          intercepts anything it merely sits over.
+
+          Bottom edge only. There was a matching strip at the top and it was
+          simply wrong: this content is clipped by a solid top bar rather than
+          scrolling under it, so there is no edge there to dissolve into — the
+          strip had nothing to do but blur the page heading, which it did,
+          past readability. At the bottom the blur means something, because
+          there really is more page below it. */}
+      <div className="pointer-events-none absolute inset-0 z-20">
+        <div className="sticky top-0 h-screen">
+          <ProgressiveBlur side="bottom" height={96} />
+        </div>
+      </div>
 
       <div className="pl-10 sm:pl-16 lg:pl-24">
         <header className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-6">

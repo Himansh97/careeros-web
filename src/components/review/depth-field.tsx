@@ -54,6 +54,31 @@ const STARS = {
   near: field(12, 55555),
 };
 
+/**
+ * Light rays, dark theme only.
+ *
+ * They are shafts from a source off the top-right corner — a sun outside the
+ * frame, which is how it actually looks from orbit and why the angles here are
+ * near-parallel rather than fanning from a visible point. A fan gives away that
+ * the source is a few hundred pixels away; parallel shafts read as something
+ * very far off.
+ *
+ * Restricted to dark because there is nothing to restrict on paper. The light
+ * palette is a printed document — the identity is a 1975 manual — and volumetric
+ * light on white stock reads as a smudge, not as atmosphere. `dark:` handles it
+ * in CSS rather than by reading the theme in JS, so there is no hydration
+ * window where the rays flash on a light background.
+ *
+ * Widths and angles are uneven on purpose. Four evenly-spaced identical beams
+ * is the version that looks like a stock asset.
+ */
+const RAYS = [
+  { x: "48%", width: 220, angle: 14, opacity: 0.22, delay: 0 },
+  { x: "63%", width: 110, angle: 17, opacity: 0.15, delay: 3.5 },
+  { x: "74%", width: 300, angle: 12, opacity: 0.26, delay: 1.5 },
+  { x: "89%", width: 140, angle: 19, opacity: 0.13, delay: 5 },
+];
+
 export function DepthField() {
   const reduced = useReducedMotion();
   const scrollYProgress = useContainerScroll();
@@ -85,6 +110,37 @@ export function DepthField() {
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       aria-hidden="true"
     >
+      {/* Light rays. Behind the stars, so the stars read as being in front of
+          the light rather than floating on top of it. */}
+      <motion.div className="absolute inset-0 hidden overflow-hidden dark:block" style={{ y: starsFar }}>
+        {RAYS.map((r) => (
+          <motion.div
+            key={r.x}
+            className="absolute -top-1/3 h-[170%] origin-top"
+            style={{
+              left: r.x,
+              width: r.width,
+              rotate: r.angle,
+              // Fades out along its length rather than ending, which is what
+              // stops a shaft of light looking like a rectangle.
+              background:
+                "linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0) 72%)",
+              filter: "blur(38px)",
+              opacity: r.opacity,
+            }}
+            // Breathing, not pulsing. Long uneven periods so no two rays are
+            // ever at the same brightness and the loop never becomes a beat.
+            animate={{ opacity: [r.opacity, r.opacity * 1.5, r.opacity] }}
+            transition={{
+              duration: 14 + r.delay,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: r.delay,
+            }}
+          />
+        ))}
+      </motion.div>
+
       {/* Three star depths. Size and brightness track depth, so the nearest
           layer is the one you notice moving. */}
       <motion.div className="absolute inset-0" style={{ y: starsFar }}>
