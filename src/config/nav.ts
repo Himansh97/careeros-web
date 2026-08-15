@@ -53,6 +53,7 @@ export const navSections: NavSection[] = [
       { title: "Discover Jobs", href: "/jobs", icon: Search },
       { title: "Resumes", href: "/resume", icon: FileText },
       { title: "Approvals", href: "/approvals", icon: ShieldCheck },
+      { title: "Apply Queue", href: "/apply", icon: Send },
       { title: "Applications", href: "/applications", icon: Briefcase },
     ],
   },
