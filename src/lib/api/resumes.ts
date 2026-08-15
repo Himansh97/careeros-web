@@ -81,11 +81,35 @@ export async function resetResumeEdits(
   );
 }
 
+/**
+ * An application's pipeline status, as the state of its resume document.
+ *
+ * The application pipeline has more states than a document does, so anything
+ * the employer has already seen collapses to "approved" — the document is
+ * settled either way, and the pipeline page is where its outcome belongs.
+ * An unrecognised status reads as "draft" rather than "ready": the failure
+ * that matters here is telling the candidate a weak resume is good to send.
+ */
+const SENT_STATUSES = new Set([
+  "applied",
+  "submitted",
+  "recruiter_contacted",
+  "screening",
+  "interview",
+  "offer",
+  "rejected",
+]);
+
+function resumeStatus(status?: string): ResumeVersion["status"] {
+  if (status && SENT_STATUSES.has(status)) return "approved";
+  return status === "ready" ? "ready" : "draft";
+}
+
 export async function listResumes(): Promise<ApiResult<ResumeVersion[]>> {
   if (isLiveApi()) {
     // Resumes are generated per job on demand, so the list view derives from
     // applications that already have a resume score.
-    const res = await apiFetch<{ applications: { jobId: string; title: string; company: { name: string }; rawFitScore: number; resumeScore: number | null; updatedAt?: string }[] }>(
+    const res = await apiFetch<{ applications: { jobId: string; title: string; company: { name: string }; rawFitScore: number; resumeScore: number | null; status?: string; updatedAt?: string }[] }>(
       "/api/applications"
     );
     if (!res.ok) return res;
@@ -102,11 +126,19 @@ export async function listResumes(): Promise<ApiResult<ResumeVersion[]>> {
         jobTitle: a.title,
         companyName: a.company.name,
         version: 1,
-        status: "ready" as const,
+        // The backend has always sent the real status; this threw it away and
+        // wrote "ready" on every row. Harmless while the audit was mostly
+        // constants and everything genuinely was ready — but once the scoring
+        // started discriminating, resumes scoring 50 sat here labelled Ready.
+        status: resumeStatus(a.status),
         rawFitScore: a.rawFitScore,
         resumeScore: a.resumeScore ?? 0,
         scoreHistory: [a.resumeScore ?? 0],
         sections: [],
+        // Placeholder, not data. /api/applications carries the score but not
+        // the audit behind it, which only `GET /api/jobs/{id}/resume` computes.
+        // The list view renders none of this — do not start, or the page will
+        // report a REVIEW verdict it never ran. Fetch the resume instead.
         audit: {
           overall: a.resumeScore ?? 0,
           decision: "REVIEW" as const,
