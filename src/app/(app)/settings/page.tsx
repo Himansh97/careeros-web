@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { UserCircle, SlidersHorizontal, Plug, ChevronRight, Circle } from "lucide-react";
+import { UserCircle, SlidersHorizontal, Plug, ChevronRight, Circle, Gauge } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { isLiveApi } from "@/lib/api/client";
@@ -27,6 +27,13 @@ const sections = [
     icon: Plug,
     title: "Integrations",
     description: "Job sources, contact providers, and what each connection may do.",
+  },
+  {
+    href: "/settings/usage",
+    icon: Gauge,
+    title: "API usage",
+    description:
+      "Token spend for resume wording, and the daily and monthly limits that cap it.",
   },
 ];
 
