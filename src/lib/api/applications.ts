@@ -116,6 +116,45 @@ export function nextStatus(status: PipelineStatus): PipelineStatus | null {
   return nonTerminalOrder[idx + 1];
 }
 
+/**
+ * Record that the candidate sent this application. One call, one status.
+ *
+ * The apply queue used `advanceApplication`, which is wrong for it in three
+ * ways that compounded into "the button does nothing":
+ *
+ * 1. It reads the local applications store, and that store is only populated
+ *    when a component subscribes to it. `/apply` uses TanStack Query and never
+ *    subscribes, so on a direct visit the snapshot is `[]`, no record is found,
+ *    and the function returns having done nothing at all.
+ * 2. It advances one pipeline column per call, so from `ready` it reached
+ *    `applying` — not sent. Marking something applied took two clicks, and the
+ *    first one landed on a status that means the opposite.
+ * 3. It computes the target from the cached copy and then writes that absolute
+ *    status to the server, so a stale cache does not merely fail — it drags
+ *    server state backwards. That is how a submitted application became
+ *    `applying` again.
+ *
+ * This states the destination instead of deriving it, and returns a result the
+ * caller can actually check. `submitted` is the status `advance` stamps
+ * `submitted_at` for; nothing else in the pipeline records the send.
+ */
+export async function markApplicationSubmitted(
+  id: string
+): Promise<ApiResult<ApplicationRecord>> {
+  const res = await apiFetch<ApplicationRecord>(
+    `/api/applications/${encodeURIComponent(id)}/advance`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        status: "submitted",
+        note: "Marked as applied by the candidate",
+      }),
+    }
+  );
+  if (res.ok) await refreshApplications();
+  return res;
+}
+
 export function advanceApplication(id: string) {
   const records = getApplicationsSnapshot();
   const record = records.find((a) => a.id === id);

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MotionList, MotionListItem } from "@/components/motion/primitives";
 import { getApplyQueue, prefillJob, type QueueRow } from "@/lib/api/apply-queue";
-import { advanceApplication } from "@/lib/api/applications";
+import { markApplicationSubmitted } from "@/lib/api/applications";
 import { isLiveApi } from "@/lib/api/client";
 
 /**
@@ -103,13 +103,35 @@ export default function ApplyQueuePage() {
     }
   }
 
+  /**
+   * Hide the row only once the backend has actually recorded the send.
+   *
+   * This hid it first, awaited a function that returns nothing on the live
+   * path, and then reported success unconditionally. So a call that did
+   * nothing looked exactly like one that worked: the row vanished, a green
+   * toast appeared, and the application came back on the next reload.
+   */
   async function markApplied(row: QueueRow) {
-    setDone((prev) => new Set(prev).add(row.jobId));
-    await advanceApplication(`app_${row.jobId}`);
-    toast.success(`${row.company} marked as applied`, {
-      description: "CareerOS did not submit this — it records that you did.",
-    });
-    void refetch();
+    setBusy(row.jobId);
+    try {
+      const res = await markApplicationSubmitted(`app_${row.jobId}`);
+      if (!res.ok) {
+        toast.error("Couldn't record that", {
+          description:
+            res.reason === "not_found"
+              ? "No application record for this job yet — tailor a resume for it first."
+              : "Nothing was changed. The row is still here so you can try again.",
+        });
+        return;
+      }
+      setDone((prev) => new Set(prev).add(row.jobId));
+      toast.success(`${row.company} marked as applied`, {
+        description: "CareerOS did not submit this — it records that you did.",
+      });
+      void refetch();
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
@@ -194,8 +216,16 @@ function Row({
           </div>
           {/* Only a real blocker is amber. A routine "Review and approve"
               sits on every ready application, and colouring all of them
-              warning taught the colour to mean nothing. */}
-          {row.note && (
+              warning taught the colour to mean nothing.
+
+              That note is now dropped rather than greyed. It was the stored
+              `next_action` on 24 of 25 rows — identical everywhere, so it
+              carried nothing — and phrased as an instruction, which is why it
+              read as a control. It was reported as a button that does not
+              work, and it was never a button. The notes worth keeping say
+              something specific about this row: a security code, a follow-up
+              date, how far short the resume is. */}
+          {row.note && row.note !== "Review and approve" && (
             <p className={`mt-1.5 text-xs ${row.blocked ? "text-warning" : "text-muted-foreground"}`}>
               {row.note}
             </p>
@@ -216,7 +246,7 @@ function Row({
             )}
             {busy ? "Opening…" : "Open pre-filled"}
           </Button>
-          <Button size="sm" variant="ghost" onClick={onApplied}>
+          <Button size="sm" variant="ghost" onClick={onApplied} disabled={busy}>
             <Check className="size-3.5" strokeWidth={1.75} />
             Mark applied
           </Button>
