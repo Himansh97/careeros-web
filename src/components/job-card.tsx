@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, X, MapPin, Clock, UserCheck, Building2 } from "lucide-react";
+import { Bookmark, X, MapPin, Clock, UserCheck, Building2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime, formatSalary } from "@/lib/format";
 import { ScoreBadge } from "@/components/score-badge";
@@ -13,6 +13,28 @@ interface JobCardProps {
   onSelect: (job: Job) => void;
   onToggleSave: (job: Job) => void;
   onDismiss: (job: Job) => void;
+}
+
+/**
+ * How far along this job already is, when that is worth saying on a card.
+ *
+ * Only states the candidate has actually acted on get a label. "discovered"
+ * and "qualified" describe what CareerOS did, not what they did, and marking
+ * every scored job would make the badge mean nothing.
+ */
+const APPLIED_LABELS: Record<string, string> = {
+  applying: "Applying",
+  submitted: "Applied",
+  applied: "Applied",
+  recruiter_contacted: "Recruiter replied",
+  screening: "Screening",
+  interview: "Interviewing",
+  offer: "Offer",
+  rejected: "Rejected",
+};
+
+function appliedLabel(status?: string | null): string | null {
+  return (status && APPLIED_LABELS[status]) || null;
 }
 
 const arrangementLabel: Record<Job["workArrangement"], string> = {
@@ -87,6 +109,18 @@ export function JobCard({ job, selected, onSelect, onToggleSave, onDismiss }: Jo
               <span className="inline-flex items-center gap-1 text-primary">
                 <UserCheck className="size-3" strokeWidth={1.75} />
                 Recruiter found
+              </span>
+            )}
+            {/* You have already acted on this one.
+                The API has always sent `applicationStatus` and nothing read
+                it, so a job you applied to last week sat in Discover looking
+                exactly like a fresh find — and the only way to know was to
+                remember. Applying does not close the req, so these keep coming
+                back on every crawl. */}
+            {appliedLabel(job.applicationStatus) && (
+              <span className="inline-flex items-center gap-1 rounded bg-success/10 px-1.5 py-0.5 text-success">
+                <CheckCircle2 className="size-3" strokeWidth={1.75} />
+                {appliedLabel(job.applicationStatus)}
               </span>
             )}
           </div>
