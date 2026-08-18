@@ -15,6 +15,13 @@ export interface OutreachRecord {
   repliedAt: string | null;
   followUpDueAt: string | null;
   createdAt: string;
+  /** Joined from the contact record so a draft can be addressed without
+   *  leaving the page. Null when no contact was ever identified. */
+  contactName?: string | null;
+  contactTitle?: string | null;
+  contactEmail?: string | null;
+  contactLinkedin?: string | null;
+  contactEmailVerified?: boolean;
 }
 
 export interface FollowUp extends OutreachRecord {

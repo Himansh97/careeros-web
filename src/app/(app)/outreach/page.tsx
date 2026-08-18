@@ -3,7 +3,15 @@
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertCircle, Send, Copy, Mail, CheckCheck, RotateCcw } from "lucide-react";
+import {
+  AlertCircle,
+  Send,
+  Copy,
+  Mail,
+  CheckCheck,
+  RotateCcw,
+  ExternalLink,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,6 +31,30 @@ import { listOutreach, setOutreachStatus, type OutreachRecord } from "@/lib/api/
 import { formatRelativeTime } from "@/lib/format";
 
 const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
+/**
+ * Open this draft in Gmail, addressed, in the browser.
+ *
+ * The button used a `mailto:` URL, which hands the message to whatever the OS
+ * has registered as the default mail handler. On this machine that is Apple
+ * Mail, so every outreach draft was landing in an iCloud account the candidate
+ * does not send job applications from — and they only noticed by finding the
+ * copies there.
+ *
+ * The same line also omitted the recipient entirely (`mailto:?subject=...`),
+ * so even in the right client the address had to be typed by hand from another
+ * tab. Both are fixed here: Gmail's compose endpoint, with `to` filled in.
+ */
+function gmailComposeUrl(record: OutreachRecord): string {
+  const params = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: record.contactEmail ?? "",
+    su: record.emailSubject ?? "",
+    body: record.emailDraft ?? "",
+  });
+  return `https://mail.google.com/mail/?${params.toString()}`;
+}
 
 const statusStyle: Record<string, string> = {
   drafted: "",
@@ -177,6 +209,57 @@ export default function OutreachPage() {
                   <p className="text-xs text-muted-foreground">{selected.jobTitle}</p>
                 </div>
 
+                {/* Who this is actually going to.
+                    The panel showed a draft with no addressee, so sending one
+                    meant opening Contacts in another tab to find the address —
+                    every time. The API now joins it; this shows it. */}
+                {selected.contactName && (
+                  <div className="rounded-md border border-border bg-muted/40 px-3 py-2">
+                    <div className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-sm font-medium text-foreground">
+                        {selected.contactName}
+                      </span>
+                      {selected.contactTitle && (
+                        <span className="text-xs text-muted-foreground">
+                          {selected.contactTitle}
+                        </span>
+                      )}
+                    </div>
+                    {selected.contactEmail && (
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <button
+                          type="button"
+                          className="font-mono text-xs text-foreground underline-offset-2 hover:underline"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(selected.contactEmail ?? "");
+                            toast.success("Email copied");
+                          }}
+                        >
+                          {selected.contactEmail}
+                        </button>
+                        {/* An unverified address is worth knowing before you
+                            send, not after it bounces. */}
+                        {!selected.contactEmailVerified && (
+                          <span className="rounded bg-warning/15 px-1.5 py-0.5 text-[10px] text-warning">
+                            unverified
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {selected.contactLinkedin && (
+                      <a
+                        href={selected.contactLinkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-xs text-info hover:underline"
+                      >
+                        <ExternalLink className="size-3" strokeWidth={1.75} />
+                        LinkedIn profile
+                      </a>
+                    )}
+                  </div>
+                )}
+
                 {selected.emailSubject && (
                   <div>
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -195,13 +278,10 @@ export default function OutreachPage() {
                     <div className="mt-2 flex flex-wrap gap-2">
                       <Button
                         size="sm"
-                        onClick={() => {
-                          const url = `mailto:?subject=${encodeURIComponent(selected.emailSubject ?? "")}&body=${encodeURIComponent(selected.emailDraft ?? "")}`;
-                          window.location.href = url;
-                        }}
+                        onClick={() => window.open(gmailComposeUrl(selected), "_blank")}
                       >
                         <Mail className="size-3.5" strokeWidth={1.75} />
-                        Open in mail
+                        Open in Gmail
                       </Button>
                       <Button
                         size="sm"
@@ -223,9 +303,39 @@ export default function OutreachPage() {
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       LinkedIn draft
                     </span>
-                    <Textarea readOnly value={selected.linkedinDraft} rows={4} className="mt-1 text-xs" />
-                    <p className="mt-1 text-[11px] text-muted-foreground">
+                    <Textarea readOnly value={selected.linkedinDraft} rows={5} className="mt-1 text-xs" />
+                    {/* Copy and profile side by side: the two things you do
+                        with a LinkedIn note, in the order you do them. Neither
+                        existed here, so this panel could show you a note and
+                        no way to act on it. */}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(selected.linkedinDraft ?? "");
+                          toast.success("LinkedIn note copied");
+                        }}
+                      >
+                        <Copy className="size-3.5" strokeWidth={1.75} />
+                        Copy note
+                      </Button>
+                      {selected.contactLinkedin && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a
+                            href={selected.contactLinkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="size-3.5" strokeWidth={1.75} />
+                            Open profile
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">
                       Send manually — no LinkedIn automation exists or is planned.
+                      Connection notes are capped at 300 characters.
                     </p>
                   </div>
                 )}

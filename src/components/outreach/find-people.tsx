@@ -149,8 +149,16 @@ export function FindPeople({
                   <div className="flex shrink-0 items-center gap-1">
                     {c.email && (
                       <>
+                        {/* Gmail, not `mailto:`. A mailto hands off to the OS
+                            default handler — Apple Mail here — so mail written
+                            for the job search was being composed in an iCloud
+                            account the candidate does not send from. */}
                         <Button size="sm" variant="ghost" asChild>
-                          <a href={`mailto:${c.email}`}>
+                          <a
+                            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(c.email)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             <Mail className="size-3.5" strokeWidth={1.75} />
                             Email
                           </a>
