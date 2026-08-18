@@ -44,6 +44,12 @@ const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
  * The same line also omitted the recipient entirely (`mailto:?subject=...`),
  * so even in the right client the address had to be typed by hand from another
  * tab. Both are fixed here: Gmail's compose endpoint, with `to` filled in.
+ *
+ * `authuser` is pinned to the profile address. Without it the URL resolves to
+ * whichever Google account the browser treats as default, so on a machine
+ * signed into more than one the message is composed — and sent — from the
+ * wrong mailbox. It then never appears in the Sent folder being watched, which
+ * looks exactly like the mail vanishing.
  */
 function gmailComposeUrl(record: OutreachRecord): string {
   const params = new URLSearchParams({
@@ -53,6 +59,7 @@ function gmailComposeUrl(record: OutreachRecord): string {
     su: record.emailSubject ?? "",
     body: record.emailDraft ?? "",
   });
+  if (record.fromEmail) params.set("authuser", record.fromEmail);
   return `https://mail.google.com/mail/?${params.toString()}`;
 }
 

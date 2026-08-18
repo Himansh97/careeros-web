@@ -22,6 +22,9 @@ export interface OutreachRecord {
   contactEmail?: string | null;
   contactLinkedin?: string | null;
   contactEmailVerified?: boolean;
+  /** The mailbox this should be sent from, used to pin Gmail's `authuser` so
+   *  a browser signed into several Google accounts opens the right one. */
+  fromEmail?: string | null;
 }
 
 export interface FollowUp extends OutreachRecord {
