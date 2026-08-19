@@ -11,6 +11,7 @@ import {
   CheckCheck,
   RotateCcw,
   ExternalLink,
+  FileDown,
 } from "lucide-react";
 import {
   Table,
@@ -26,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
-import { isLiveApi } from "@/lib/api/client";
+import { API_URL, isLiveApi } from "@/lib/api/client";
 import { listOutreach, setOutreachStatus, type OutreachRecord } from "@/lib/api/ops";
 import { formatRelativeTime } from "@/lib/format";
 
@@ -51,6 +52,19 @@ const isMockMode = () => process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
  * wrong mailbox. It then never appears in the Sent folder being watched, which
  * looks exactly like the mail vanishing.
  */
+/** The tailored resume for this posting, straight from the API.
+ *
+ *  Gmail's compose URL can carry a recipient, a subject and a body, but there
+ *  is no parameter for an attachment and there never has been — so a draft
+ *  opened from here goes out with no resume unless one is added by hand. The
+ *  backend has always been able to render the tailored PDF; this panel simply
+ *  never offered it, which is the whole reason a resume kept not being
+ *  attached. One click, next to the button that opens the mail.
+ */
+function resumeUrl(record: OutreachRecord): string {
+  return `${API_URL}/api/jobs/${encodeURIComponent(record.jobId)}/resume.pdf`;
+}
+
 function gmailComposeUrl(record: OutreachRecord): string {
   const params = new URLSearchParams({
     view: "cm",
@@ -301,7 +315,19 @@ export default function OutreachPage() {
                         <Copy className="size-3.5" strokeWidth={1.75} />
                         Copy
                       </Button>
+                      {isLiveApi() && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={resumeUrl(selected)} download>
+                            <FileDown className="size-3.5" strokeWidth={1.75} />
+                            R&eacute;sum&eacute; (PDF)
+                          </a>
+                        </Button>
+                      )}
                     </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Gmail cannot attach a file from a compose link. Download the
+                      r&eacute;sum&eacute; and attach it before sending.
+                    </p>
                   </div>
                 )}
 
