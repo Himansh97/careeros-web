@@ -1,42 +1,64 @@
 # careeros-web
 
-> **Part of CareerOS** — [careeros](https://github.com/Himansh97/careeros) (data + docs + state) · [careeros-api](https://github.com/Himansh97/careeros-api) (backend) · **careeros-web** (frontend)
->
-> Current state: [`careeros/docs/STATE.md`](https://github.com/Himansh97/careeros/blob/main/docs/STATE.md)
+> **Part of CareerOS** — [careeros-api](https://github.com/Himansh97/careeros-api) (backend) · **careeros-web** (frontend)
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Frontend for CareerOS. Next.js 16, React 19, TypeScript, Tailwind v4, shadcn/ui.
+27 routes over one pipeline: discovery, fit breakdowns, in-app resume editing,
+approvals, recruiter messages, outreach and interview practice.
 
-## Getting Started
+## Three rules this is built around
 
-First, run the development server:
+**Nothing auto-submits.** Buttons prepare and stage; the person applies. The copy
+is held to this too — "Open application" and "Mark as applied", never "Approve &
+Submit". The backend is structurally incapable of pressing submit, and the UI must
+never imply otherwise.
+
+**Never show mock data as if it were real.** `isLiveApi()` and `isMockData()` in
+`src/lib/api/client.ts` gate every query. A backend that is down surfaces as an
+explicit not-connected state, never as plausible-looking zeros — because a
+pipeline that reads "0 applications" when the API is unreachable is worse than one
+that reads "cannot reach the API".
+
+**Report honestly what the backend actually did.** If search scored a subset of
+matches, the page says "N of M scored" rather than presenting a partial ranking as
+a complete one.
+
+## Notable
+
+- **`apiFetch` never throws.** It returns a discriminated union — `{ok: true, data}`
+  or `{ok: false, reason}` — because a disconnected backend is a normal state in a
+  local-first tool, not an exception.
+- **The React Compiler is on**, which makes `setState` inside an effect a lint
+  error. Continuous animation is driven by framer-motion `MotionValue`s off the
+  React render path, and values that live outside React are read through
+  `useSyncExternalStore`.
+- **Reduced motion is a hard requirement.** `globals.css` neutralises CSS
+  transitions globally, so anything that animates has to degrade to a static state
+  rather than a slower one.
+- The palette is the 1975 NASA Graphics Standards Manual; interview readiness is
+  presented as a launch poll, reading GO / HOLD / NO-GO per competency.
+
+## Running it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # :3311
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` holds `NEXT_PUBLIC_API_URL=http://localhost:8000`. Start
+[careeros-api](https://github.com/Himansh97/careeros-api) first, or every page
+shows its not-connected state — which is the honest thing for it to do.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint       # must be clean
+npx tsc --noEmit   # must be clean
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Both clean is the bar before anything is called done, and then the flow gets
+clicked — several bugs here type-checked and linted perfectly while being
+completely broken at runtime.
 
-## Learn More
+## Data
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The candidate's own data lives in a separate private repository. Nothing personal
+is committed here.
