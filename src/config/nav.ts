@@ -20,6 +20,7 @@ import {
   MoreHorizontal,
   Contact,
   Radar,
+  Mic,
 } from "lucide-react";
 
 export interface NavItem {
@@ -55,6 +56,9 @@ export const navSections: NavSection[] = [
       { title: "Approvals", href: "/approvals", icon: ShieldCheck },
       { title: "Apply Queue", href: "/apply", icon: Send },
       { title: "Applications", href: "/applications", icon: Briefcase },
+      // Prep sits in Pipeline because it is a stage of the process, not a
+      // system tool — it happens between applying and the interview.
+      { title: "Interview Prep", href: "/prep", icon: Mic },
     ],
   },
   {
