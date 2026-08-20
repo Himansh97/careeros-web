@@ -4,6 +4,7 @@ import { TopNav } from "@/components/app-shell/top-nav";
 import { MobileNav } from "@/components/app-shell/mobile-nav";
 import { CapcomPanel } from "@/components/capcom/capcom-panel";
 import { Companion } from "@/components/companion/companion";
+import { NewsTicker } from "@/components/news-ticker";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNav />
+          {/* In normal flow, not fixed: the shell is h-svh overflow-hidden, so a
+              fixed strip would measure from the window and cover the sidebar. */}
+          <NewsTicker />
           <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
             <div className="mx-auto flex h-full max-w-6xl flex-col gap-6 p-4 md:p-6 lg:p-8">
               {children}
