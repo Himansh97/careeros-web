@@ -58,6 +58,30 @@ Both clean is the bar before anything is called done, and then the flow gets
 clicked — several bugs here type-checked and linted perfectly while being
 completely broken at runtime.
 
+## Technical Interview Lab
+
+`/prep/technical` is a guided mission map for analytics-core, data-stack, and
+role-specific preparation. Every drill follows Brief → Example → Practice →
+Review → Transfer, with progressive hints and explicit solution reveal. The SQL
+editor uses CodeMirror, Python/Pandas runs in a dedicated Pyodide Web Worker, and
+written cases expose structured interview rubrics.
+
+`/prep/technical/interview` starts frozen 30/45/60-minute mixed rounds. Answers
+autosave, the countdown is anchored to server time, and correctness remains
+locked until the round is submitted or expires. Results show deterministic
+per-skill feedback and a review queue—no leaderboard, arbitrary points, or streak
+penalty.
+
+```bash
+npm test
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+When the API is unavailable, the lab reports a disconnected state and never
+substitutes generated mastery or attempt data.
+
 ## Data
 
 The candidate's own data lives in a separate private repository. Nothing personal
