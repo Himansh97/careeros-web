@@ -58,7 +58,7 @@ export const navSections: NavSection[] = [
       { title: "Applications", href: "/applications", icon: Briefcase },
       // Prep sits in Pipeline because it is a stage of the process, not a
       // system tool — it happens between applying and the interview.
-      { title: "Interview Prep", href: "/prep", icon: Mic },
+      { title: "Interview Prep", href: "/prep", icon: Mic, match: "/prep" },
     ],
   },
   {

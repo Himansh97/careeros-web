@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mic, Square, RotateCcw, PlugZap, Radar } from "lucide-react";
+import { Braces, Mic, Square, RotateCcw, PlugZap, Radar } from "lucide-react";
 
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -210,7 +211,7 @@ export default function PrepPage() {
   if (!isLiveApi()) {
     return (
       <>
-        <PageHeader title="Interview prep" description="Practice, checked against your evidence." />
+        <PageHeader title="Interview prep" description="Practice, checked against your evidence." action={<Button asChild variant="outline"><Link href="/prep/technical"><Braces className="size-4" /> Technical lab</Link></Button>} />
         <EmptyState
           icon={PlugZap}
           title="Not connected"
@@ -227,6 +228,7 @@ export default function PrepPage() {
       <PageHeader
         title="Interview prep"
         description="Answer out loud. Every figure you say is checked against your evidence."
+        action={<Button asChild variant="outline"><Link href="/prep/technical"><Braces className="size-4" /> Technical lab</Link></Button>}
       />
 
       {/* ---- the launch poll ------------------------------------------- */}
