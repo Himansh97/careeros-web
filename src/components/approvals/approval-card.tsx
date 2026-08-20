@@ -1,5 +1,6 @@
 "use client";
 
+import { markApplicationOpened } from "@/lib/api/applications";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -205,7 +206,12 @@ export function ApprovalCard({ item }: { item: ApprovalItem }) {
               // The actual application happens on the employer's own site.
               // Nothing here submits on the candidate's behalf.
               <Button size="sm" asChild>
-                <a href={applyUrl} target="_blank" rel="noreferrer">
+                <a
+                  href={applyUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => markApplicationOpened(`app_${item.jobId}`)}
+                >
                   <ExternalLink className="size-3.5" strokeWidth={1.75} />
                   Open application
                 </a>

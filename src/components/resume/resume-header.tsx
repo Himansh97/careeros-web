@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreAssay } from "@/components/score-assay";
+import { markApplicationOpened } from "@/lib/api/applications";
 import { API_URL, apiFetch, isLiveApi } from "@/lib/api/client";
 import { ResumePreview } from "@/components/resume/resume-preview";
 import type { ResumeVersion } from "@/types/resume";
@@ -135,7 +136,15 @@ export function ResumeHeader({ resume, onApprove, applyUrl }: ResumeHeaderProps)
           </Button>
           {applyUrl ? (
             <Button size="sm" variant="outline" asChild>
-              <a href={applyUrl} target="_blank" rel="noreferrer noopener">
+              <a
+                href={applyUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                // Going to the employer's site is the moment the application
+                // starts. Recorded here so the pipeline stops needing a button
+                // pressed for something the system can already see.
+                onClick={() => markApplicationOpened(`app_${resume.jobId}`)}
+              >
                 <ExternalLink className="size-3.5" strokeWidth={1.75} />
                 Open application
               </a>

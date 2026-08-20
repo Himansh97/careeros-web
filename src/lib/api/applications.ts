@@ -155,6 +155,24 @@ export async function markApplicationSubmitted(
   return res;
 }
 
+/**
+ * The candidate has gone to the employer's site to apply.
+ *
+ * The one pipeline transition that needs no inference — you cannot apply
+ * without opening the application. Fire-and-forget and idempotent: the server
+ * refuses to move an application backwards, so re-opening a submitted one to
+ * check something is a no-op rather than an error.
+ */
+export function markApplicationOpened(id: string) {
+  if (!isLiveApi()) return;
+  void fetch(`${API_URL}/api/applications/${encodeURIComponent(id)}/opened`, {
+    method: "POST",
+  }).catch(() => {
+    // Opening the application is the point; failing to record it must never
+    // stop the candidate getting to the form.
+  });
+}
+
 export function advanceApplication(id: string) {
   const records = getApplicationsSnapshot();
   const record = records.find((a) => a.id === id);
