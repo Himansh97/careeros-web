@@ -84,6 +84,36 @@ export interface Attempt {
   createdAt: string;
 }
 
+export interface AnswerShape {
+  questionId: string;
+  researchedAt: string;
+  /** What the interviewer is actually assessing. */
+  assesses: string;
+  structure: string[];
+  traps: string[];
+  timing: string;
+  /** Mandatory. Craft knowledge from outside must show where it came from. */
+  sources: { title: string; url: string }[];
+}
+
+export interface Draft {
+  answer: string;
+  claims: { claimId: string; employer: string; claim: string }[];
+  reviewNotes: string[];
+}
+
+export interface ModelAnswer {
+  question: Question;
+  shape: AnswerShape | null;
+  draft: Draft | null;
+  draftAvailable: boolean;
+}
+
+export const getModelAnswer = (questionId: string) =>
+  apiFetch<ModelAnswer>(
+    `/api/prep/questions/${encodeURIComponent(questionId)}/model-answer`,
+  );
+
 export const getPrepOverview = () => apiFetch<Overview>("/api/prep/overview");
 
 export const getPrepQuestions = () =>

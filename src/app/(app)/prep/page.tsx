@@ -18,6 +18,7 @@ import {
   type Question,
   type SystemCheck,
 } from "@/lib/api/prep";
+import { ModelAnswer } from "@/components/prep/model-answer";
 import { useSpeech } from "@/lib/hooks/use-speech";
 import { cn } from "@/lib/utils";
 
@@ -291,6 +292,10 @@ export default function PrepPage() {
       {active && (
         <section className="grid gap-3 rounded-lg border border-border bg-card p-4">
           <h2 className="text-lg font-semibold">{active.prompt}</h2>
+
+          {/* Deliberately above the answer box: reading what good looks like
+              before you speak is the point, and it costs nothing until opened. */}
+          <ModelAnswer questionId={active.id} />
 
           {speech.supported ? (
             <div className="flex flex-wrap items-center gap-2">
