@@ -18,6 +18,7 @@ export interface TechnicalDrill {
   dataset_id: string | null;
   dataset_version: string | null;
   starter_answer: string;
+  fixture: Record<string, unknown[]>;
   ordered: boolean;
   numeric_tolerance: number;
   hints: { conceptual: string; pattern: string };

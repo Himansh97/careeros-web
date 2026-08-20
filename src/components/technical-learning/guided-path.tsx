@@ -11,6 +11,7 @@ import { HintLadder } from "./hint-ladder";
 import { ResultGrid } from "./result-grid";
 import { SchemaBrowser } from "./schema-browser";
 import { SqlEditor } from "./sql-editor";
+import { PythonEditor } from "./python-editor";
 import { isLiveApi } from "@/lib/api/client";
 import {
   getTechnicalDrill,
@@ -39,6 +40,7 @@ function Workbench({ drill }: { drill: TechnicalDrill }) {
     return recoverDraft(window.localStorage, drill.id) || drill.starter_answer;
   });
   const [preview, setPreview] = React.useState<QueryResult | null>(null);
+  const [pythonOutput, setPythonOutput] = React.useState<unknown>(null);
   const [result, setResult] = React.useState<AttemptResult | null>(null);
 
   const updateAnswer = (value: string) => {
@@ -56,7 +58,7 @@ function Workbench({ drill }: { drill: TechnicalDrill }) {
     mutationFn: (solutionRevealed: boolean) =>
       submitTechnicalAttempt({
         drillId: drill.id,
-        answer,
+        answer: drill.kind === "python" ? pythonOutput : answer,
         hintsUnlocked: Number(state.hints.conceptual) + Number(state.hints.pattern),
         solutionRevealed,
       }),
@@ -136,11 +138,12 @@ function Workbench({ drill }: { drill: TechnicalDrill }) {
               <p className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Challenge</p>
               <p className="mt-2 text-sm leading-6">{drill.prompt}</p>
             </div>
-            {drill.kind === "sql" ? <SqlEditor value={answer} onChange={updateAnswer} onRun={() => run.mutate()} /> : <CaseResponse value={answer} onChange={updateAnswer} />}
+            {drill.kind === "sql" ? <SqlEditor value={answer} onChange={updateAnswer} onRun={() => run.mutate()} /> : drill.kind === "python" ? <PythonEditor value={answer} fixture={drill.fixture} onChange={updateAnswer} onOutput={setPythonOutput} /> : <CaseResponse value={answer} onChange={updateAnswer} />}
             {drill.kind === "sql" && <div className="border border-border bg-card"><ResultGrid result={preview} /></div>}
+            {drill.kind === "python" && pythonOutput !== null && <pre className="max-h-64 overflow-auto border border-border bg-card p-4 font-mono text-xs whitespace-pre-wrap">{JSON.stringify(pythonOutput, null, 2)}</pre>}
             <div className="flex flex-wrap gap-2">
               {drill.kind === "sql" && <Button variant="outline" onClick={() => run.mutate()} disabled={run.isPending}><Play className="size-4" /> Run <span className="hidden font-mono text-[10px] opacity-60 sm:inline">⌘↵</span></Button>}
-              <Button onClick={() => check.mutate(state.solutionRevealed)} disabled={check.isPending || !answer.trim()}>Check answer</Button>
+              <Button onClick={() => check.mutate(state.solutionRevealed)} disabled={check.isPending || !answer.trim() || (drill.kind === "python" && pythonOutput === null)}>Check answer</Button>
             </div>
           </div>
           <div className="grid content-start gap-4">
