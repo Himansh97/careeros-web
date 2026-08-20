@@ -111,6 +111,7 @@ export interface TechnicalSession {
   expiresAt: string | null;
   completedAt: string | null;
   completionReason: "submitted" | "expired" | null;
+  serverNow: string;
   scorecard?: { score: number; passed: boolean; questions: ScorecardQuestion[]; reviewQueue: string[] };
 }
 
