@@ -29,6 +29,7 @@ import { isLiveApi } from "@/lib/api/client";
 import { useJobFlags } from "@/lib/hooks/use-job-flags";
 import { useDebounced } from "@/lib/hooks/use-debounced";
 import type { Job, JobSearchFilters, JobSort, WorkArrangement } from "@/types/job";
+import { cn } from "@/lib/utils";
 
 const salaryOptions = [
   { value: "any", label: "Any salary" },
@@ -96,6 +97,11 @@ export default function JobsPage() {
   // "Where did this come from" is a different question from any server-side
   // filter, and cheap to answer on the client: origin ships with every row.
   const [origin, setOrigin] = React.useState<"all" | "pasted" | "fetched">("all");
+  // Which boards to search. Unlike `origin` this is NOT a client-side filter:
+  // the server applies it before spending its scoring budget, so narrowing to
+  // Handshake searches all ~29 of its postings rather than the 11 that happened
+  // to survive into the scored page.
+  const [sources, setSources] = React.useState<string[]>([]);
   const [refreshing, setRefreshing] = React.useState(false);
   const { toggleSave, dismiss } = useJobFlags();
   const queryClient = useQueryClient();
@@ -135,13 +141,18 @@ export default function JobsPage() {
       workArrangements: arrangements.length ? arrangements : undefined,
       minimumSalary: minSalary !== "any" ? Number(minSalary) : undefined,
       minimumFit: minFit !== "any" ? Number(minFit) : undefined,
+      sources: sources.length ? (sources as JobSearchFilters["sources"]) : undefined,
     }),
-    [debouncedQuery, debouncedLocation, arrangements, minSalary, minFit]
+    [debouncedQuery, debouncedLocation, arrangements, minSalary, minFit, sources]
   );
 
+  // `sort` is part of the key, not just a client-side reorder. The server
+  // spends its scoring budget on the axis it is told to sort by, so a sort the
+  // page never sends is a sort that only ever reorders the rows the default
+  // ranking returned — which is what "Newest" was doing.
   const { data, isLoading, isError, isFetching } = useQuery({
-    queryKey: ["jobs", "search", filters],
-    queryFn: () => searchJobs(filters),
+    queryKey: ["jobs", "search", filters, sort],
+    queryFn: () => searchJobs(filters, sort),
   });
 
   const notConnected = data?.ok === false && data.reason === "not_connected";
@@ -155,6 +166,12 @@ export default function JobsPage() {
     .filter((j) => !j.dismissed)
     .filter((j) => origin === "all" || (j.origin ?? "fetched") === origin);
   const pastedCount = rawJobs.filter((j) => j.origin === "pasted" && !j.dismissed).length;
+  // Pool counts per board, from the server, taken before the source filter is
+  // applied — so selecting one board does not read every other one as (0).
+  const sourceCounts = data?.ok ? (data.data.sourceCounts ?? {}) : {};
+  const boards = Object.entries(sourceCounts)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1]);
 
   function handleSelect(job: Job) {
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
@@ -301,6 +318,52 @@ export default function JobsPage() {
           <Bookmark className="size-3.5" strokeWidth={1.75} />
           Save Search
         </Button>
+
+        {/* Board filter. The counts are pool counts, not page counts — the
+            whole reason this runs on the server is that they differ. */}
+        {boards.length > 1 && (
+          <div className="flex w-full flex-wrap items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">Boards</span>
+            <button
+              type="button"
+              onClick={() => setSources([])}
+              className={cn(
+                "rounded-full border px-2.5 py-0.5 text-xs transition-colors",
+                sources.length === 0
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              )}
+            >
+              All
+            </button>
+            {boards.map(([name, count]) => {
+              const on = sources.includes(name);
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() =>
+                    setSources((current) =>
+                      current.includes(name)
+                        ? current.filter((s) => s !== name)
+                        : [...current, name]
+                    )
+                  }
+                  className={cn(
+                    "rounded-full border px-2.5 py-0.5 text-xs transition-colors",
+                    on
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {name}{" "}
+                  <span className="tabular-nums text-muted-foreground">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Sort</span>

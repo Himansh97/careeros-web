@@ -1,4 +1,4 @@
-import type { Job, JobSearchFilters } from "@/types/job";
+import type { Job, JobSearchFilters, JobSort } from "@/types/job";
 import { mockJobs } from "@/lib/mock/jobs";
 import { apiFetch, isLiveApi, isMockData, type ApiResult } from "@/lib/api/client";
 
@@ -16,6 +16,13 @@ export interface JobSearchResult {
    * must not present it as exhaustive.
    */
   setAside?: number;
+  /**
+   * How many postings each board holds in the whole matched pool — counted
+   * before the source filter, so selecting one board does not zero the others.
+   * These are pool counts, not page counts, and the gap between them is why
+   * the filter has to run on the server.
+   */
+  sourceCounts?: Record<string, number>;
 }
 
 interface LiveSearchResponse {
@@ -24,10 +31,32 @@ interface LiveSearchResponse {
   scored: number;
   setAside: number;
   sources: string[];
+  sourceCounts?: Record<string, number>;
+}
+
+/**
+ * The UI's sort, translated to the three the server can actually select on.
+ *
+ * This matters more than it looks. The server spends its scoring budget on the
+ * axis it is asked to sort by, so asking for the wrong one means the right jobs
+ * are never scored and no amount of client-side reordering can recover them.
+ * Sending nothing at all — which is what this did — meant "Newest" re-sorted
+ * whichever 40 rows the freshness ranking happened to return.
+ *
+ * `priority`, `highest_salary` and `recruiter_found` have no server equivalent.
+ * They stay on the default ranking and get sorted client-side, which is honest
+ * for what they are: refinements of the page, not of the pool. The jobs page
+ * already prints "N of M scored" so that distinction is visible.
+ */
+function serverSort(sort?: JobSort): "fresh" | "fit" | "newest" {
+  if (sort === "newest") return "newest";
+  if (sort === "best_fit") return "fit";
+  return "fresh";
 }
 
 export async function searchJobs(
-  filters: JobSearchFilters
+  filters: JobSearchFilters,
+  sort?: JobSort
 ): Promise<ApiResult<JobSearchResult>> {
   if (isLiveApi()) {
     const res = await apiFetch<LiveSearchResponse>("/api/jobs/search", {
@@ -37,6 +66,11 @@ export async function searchJobs(
         location: filters.location ?? null,
         workArrangements: filters.workArrangements ?? null,
         minimumFit: filters.minimumFit ?? null,
+        // Applied before the scoring budget, so it narrows the pool rather
+        // than the page. Handshake carries ~29 postings in a pool of ~7,900;
+        // filtering client-side would have shown 11 of them.
+        sources: filters.sources?.length ? filters.sources : null,
+        sort: serverSort(sort),
         limit: 40,
       }),
     });
@@ -49,6 +83,7 @@ export async function searchJobs(
         new: res.data.jobs.length,
         scored: res.data.scored,
         setAside: res.data.setAside,
+        sourceCounts: res.data.sourceCounts ?? {},
       },
     };
   }
