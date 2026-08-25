@@ -10,8 +10,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MotionList, MotionListItem } from "@/components/motion/primitives";
+import { DailyApplicationCounter } from "@/components/applications/daily-application-counter";
 import { getApplyQueue, prefillJob, type QueueRow } from "@/lib/api/apply-queue";
-import { markApplicationSubmitted } from "@/lib/api/applications";
+import {
+  getApplicationsServerSnapshot,
+  getApplicationsSnapshot,
+  markApplicationSubmitted,
+  subscribeApplications,
+} from "@/lib/api/applications";
 import { isLiveApi } from "@/lib/api/client";
 
 /**
@@ -44,6 +50,11 @@ export default function ApplyQueuePage() {
 
   const [busy, setBusy] = React.useState<string | null>(null);
   const [done, setDone] = React.useState<Set<string>>(new Set());
+  const applications = React.useSyncExternalStore(
+    subscribeApplications,
+    getApplicationsSnapshot,
+    getApplicationsServerSnapshot,
+  );
 
   if (!live) {
     return (
@@ -140,6 +151,8 @@ export default function ApplyQueuePage() {
         title="Apply queue"
         description="Prepared and unsent, ordered by what is going stale first."
       />
+
+      <DailyApplicationCounter applications={applications} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tile value={rows.length} label="waiting" />

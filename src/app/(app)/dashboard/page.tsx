@@ -23,8 +23,12 @@ import { MetricCard } from "@/components/metric-card";
 import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
 import { AlertsBanner } from "@/components/alerts-banner";
+import { DailyApplicationCounter } from "@/components/applications/daily-application-counter";
+import { DeadlineCountdownCard } from "@/components/deadline-countdown";
 import { MotionList, MotionListItem, Stagger } from "@/components/motion/primitives";
 import { searchJobs } from "@/lib/api/jobs";
+import { getProfile } from "@/lib/api/profile";
+import { readDeadlineConfig } from "@/lib/deadline-countdown";
 import { useAutopilot } from "@/lib/hooks/use-autopilot";
 import { useJobFlags } from "@/lib/hooks/use-job-flags";
 import { formatRelativeTime } from "@/lib/format";
@@ -51,6 +55,16 @@ export default function DashboardPage() {
     queryKey: ["jobs", "search", {}],
     queryFn: () => searchJobs({}),
   });
+
+  // The deadline lives in job_preferences.yaml, which the API already serves
+  // as part of the profile. Long stale time: a date the candidate set by hand
+  // does not need re-fetching while they read the page.
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getProfile,
+    staleTime: 5 * 60_000,
+  });
+  const deadline = readDeadlineConfig(profile?.ok ? profile.data.preferences : null);
 
   const applications = React.useSyncExternalStore(
     subscribeApplications,
@@ -115,6 +129,12 @@ export default function DashboardPage() {
       {/* Outstanding work, above the metrics: a count of what is going well
           matters less than the thing that has been sitting unsent for days. */}
       <AlertsBanner />
+
+      {/* Above the daily counter deliberately: the daily goal is a pace, and a
+          pace only means something against the time left to keep it. */}
+      <DeadlineCountdownCard config={deadline} />
+
+      <DailyApplicationCounter applications={applications} />
 
       {/* Staggered so the row reads left-to-right as it lands rather than
           appearing all at once — the same order you read it in. Capped inside
