@@ -13,6 +13,7 @@ import { RequirementsSidebar } from "@/components/resume/requirements-sidebar";
 import { ResumeHeader } from "@/components/resume/resume-header";
 import { ResumeSection } from "@/components/resume/resume-section";
 import { ModeToggle, type DiffMode } from "@/components/resume/mode-toggle";
+import { ResumeCoachPanel } from "@/components/resume/coach-panel";
 import { RecruiterAuditPanel } from "@/components/resume/recruiter-audit-panel";
 import {
   approveResume,
@@ -298,6 +299,7 @@ export default function ResumeWorkspacePage() {
                   Undo my edits
                 </Button>
               )}
+              <ResumeCoachPanel jobId={params.jobId} onApplied={refresh} />
               <ModeToggle mode={mode} onChange={setMode} />
             </div>
           </div>
