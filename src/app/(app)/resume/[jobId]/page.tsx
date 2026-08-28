@@ -230,6 +230,18 @@ export default function ResumeWorkspacePage() {
 
       <ResumeHeader
         applyUrl={jobQuery.data?.ok ? jobQuery.data.data.applyUrl : null}
+        // The eligibility verdict travels with the job, so the submit control
+        // can show the blocker before the click rather than reporting a
+        // refusal after it.
+        eligibility={
+          jobQuery.data?.ok ? jobQuery.data.data.eligibility ?? undefined : undefined
+        }
+        company={jobQuery.data?.ok ? jobQuery.data.data.company?.name : undefined}
+        title={jobQuery.data?.ok ? jobQuery.data.data.title : undefined}
+        ats={jobQuery.data?.ok ? jobQuery.data.data.atsPlatform : undefined}
+        alreadySubmitted={Boolean(
+          jobQuery.data?.ok && jobQuery.data.data.applicationStatus === "submitted"
+        )}
         resume={isApproved ? { ...resume, status: "approved" } : resume}
         onApprove={async () => {
           // Was pure local state with a toast claiming the feature was not

@@ -86,6 +86,15 @@ export interface Job {
   rawFitScore?: number;
   resumeScore?: number;
   applicationStatus: ApplicationStatus;
+  /**
+   * Whether the candidate can actually take this role, and the posting's own
+   * wording that decided it. Present on the job because the submit control has
+   * to show the blocker before the click, not report a refusal after it.
+   */
+  eligibility?: {
+    verdict?: string;
+    blockers?: { type?: string; detail?: string; quote?: string }[];
+  } | null;
   recruiterStatus?: RecruiterStatus;
   requirements: Requirement[];
   matchBreakdown?: MatchBreakdown;

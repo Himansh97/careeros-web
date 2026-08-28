@@ -16,6 +16,10 @@ import { ScoreAssay } from "@/components/score-assay";
 import { markApplicationOpened } from "@/lib/api/applications";
 import { API_URL, apiFetch, isLiveApi } from "@/lib/api/client";
 import { ResumePreview } from "@/components/resume/resume-preview";
+import {
+  SubmitToEmployer,
+  type Eligibility,
+} from "@/components/apply/submit-to-employer";
 import type { ResumeVersion } from "@/types/resume";
 
 const statusLabel: Record<ResumeVersion["status"], string> = {
@@ -29,9 +33,26 @@ interface ResumeHeaderProps {
   onApprove: () => void;
   /** Employer's own application URL, when the posting carries one. */
   applyUrl?: string | null;
+  /** The posting's eligibility verdict, so the gate is visible before the click. */
+  eligibility?: Eligibility;
+  /** Company and role, named in the confirmation before anything is sent. */
+  company?: string;
+  title?: string;
+  ats?: string;
+  /** Already recorded as submitted — the control becomes inert, not hidden. */
+  alreadySubmitted?: boolean;
 }
 
-export function ResumeHeader({ resume, onApprove, applyUrl }: ResumeHeaderProps) {
+export function ResumeHeader({
+  resume,
+  onApprove,
+  applyUrl,
+  eligibility,
+  company,
+  title,
+  ats,
+  alreadySubmitted,
+}: ResumeHeaderProps) {
   const [prefilling, setPrefilling] = React.useState(false);
 
   /**
@@ -164,10 +185,26 @@ export function ResumeHeader({ resume, onApprove, applyUrl }: ResumeHeaderProps)
             )}
             Open pre-filled
           </Button>
-          <Button size="sm" onClick={onApprove} disabled={resume.status === "approved"}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onApprove}
+            disabled={resume.status === "approved"}
+          >
             <CheckCircle2 className="size-3.5" strokeWidth={1.75} />
             {resume.status === "approved" ? "Approved" : "Approve Resume"}
           </Button>
+          {/* Approving is a decision about the document; submitting reaches an
+              employer and cannot be recalled. They sit together because that is
+              the order the candidate works in, and the second one confirms. */}
+          <SubmitToEmployer
+            jobId={resume.jobId}
+            company={company ?? ""}
+            title={title ?? ""}
+            ats={ats}
+            eligibility={eligibility}
+            alreadySubmitted={alreadySubmitted}
+          />
         </div>
       </div>
 

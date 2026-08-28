@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { MotionList, MotionListItem } from "@/components/motion/primitives";
 import { DailyApplicationCounter } from "@/components/applications/daily-application-counter";
 import { getApplyQueue, prefillJob, type QueueRow } from "@/lib/api/apply-queue";
+import { SubmitToEmployer } from "@/components/apply/submit-to-employer";
 import {
   getApplicationsServerSnapshot,
   getApplicationsSnapshot,
@@ -251,6 +252,18 @@ function Row({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {/* Per row, never per queue. Tsenta submits in two to three seconds,
+              so a "submit all" across 26 ready roles would spend every one of
+              them before the first spinner resolved. The eligibility gate
+              still runs server-side for each of these — this row does not
+              carry the verdict, so a blocked role is refused after the click
+              with its reason shown, rather than greyed out before it. */}
+          <SubmitToEmployer
+            jobId={row.jobId}
+            company={row.company}
+            title={row.title}
+            ats={row.platform ?? undefined}
+          />
           <Button size="sm" variant="outline" onClick={onOpen} disabled={busy}>
             {busy ? (
               <Loader2 className="size-3.5 animate-spin" strokeWidth={1.75} />
