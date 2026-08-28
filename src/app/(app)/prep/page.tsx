@@ -37,8 +37,8 @@ import { cn } from "@/lib/utils";
  */
 
 const STATUS_STYLES: Record<SystemCheck["status"], string> = {
-  GO: "text-[--color-success] border-[--color-success]/40 bg-[--color-success]/5",
-  HOLD: "text-[--color-warning] border-[--color-warning]/40 bg-[--color-warning]/5",
+  GO: "text-success border-success/40 bg-success/5",
+  HOLD: "text-warning border-warning/40 bg-warning/5",
   "NO-GO": "text-muted-foreground border-border",
 };
 
@@ -68,7 +68,7 @@ function EvidencePanel({ findings }: { findings: Findings }) {
       <dl className="mt-3 grid gap-2 text-sm">
         {backedFigures.map((b) => (
           <div key={b.figure} className="flex flex-wrap items-baseline gap-2">
-            <dt className="font-mono text-[--color-success]">{b.figure}</dt>
+            <dt className="font-mono text-success">{b.figure}</dt>
             <dd className="text-muted-foreground">
               verified — {b.employer}{" "}
               <span className="font-mono text-[11px] opacity-60">{b.claimId}</span>
@@ -78,7 +78,7 @@ function EvidencePanel({ findings }: { findings: Findings }) {
 
         {unverifiedFigures.map((f) => (
           <div key={f} className="flex flex-wrap items-baseline gap-2">
-            <dt className="font-mono text-[--color-warning]">{f}</dt>
+            <dt className="font-mono text-warning">{f}</dt>
             {/* Never "false". The evidence file is an incomplete record of a
                 career, and a gap in it is not a lie. */}
             <dd className="text-muted-foreground">
@@ -107,8 +107,8 @@ function EvidencePanel({ findings }: { findings: Findings }) {
         <span
           className={cn(
             findings.length === "good"
-              ? "text-[--color-success]"
-              : "text-[--color-warning]",
+              ? "text-success"
+              : "text-warning",
           )}
         >
           {findings.length}
@@ -334,7 +334,7 @@ export default function PrepPage() {
           )}
 
           {speech.error && (
-            <p className="text-sm text-[--color-warning]">{speech.error}</p>
+            <p className="text-sm text-warning">{speech.error}</p>
           )}
 
           <Textarea

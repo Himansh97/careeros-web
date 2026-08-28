@@ -56,7 +56,7 @@ export function MissionMap({
               {locked ? (
                 <LockKeyhole className="size-4 text-muted-foreground" aria-hidden="true" />
               ) : status === "mastered" ? (
-                <Check className="size-4 text-[--color-success]" aria-hidden="true" />
+                <Check className="size-4 text-success" aria-hidden="true" />
               ) : (
                 <CircleDot className="size-4 text-primary" aria-hidden="true" />
               )}
@@ -67,7 +67,7 @@ export function MissionMap({
               <span
                 className={cn(
                   "font-mono text-[10px] tracking-[0.14em] uppercase",
-                  status === "mastered" ? "text-[--color-success]" : "text-muted-foreground",
+                  status === "mastered" ? "text-success" : "text-muted-foreground",
                 )}
               >
                 {locked ? "Locked" : status}

@@ -229,8 +229,16 @@ export default function JobsPage() {
         }
       />
 
-      {/* Paste a link to any posting, including boards we don't poll. */}
-      <ImportByUrl />
+      {/* Paste a link to any posting, including boards we don't poll.
+          Suspense because ImportByUrl reads `?add=1` via useSearchParams, and
+          a client hook that reads the URL opts the whole route out of static
+          prerendering unless it sits behind a boundary. Without this the
+          production build of /jobs fails outright — and it fails only there:
+          the dev server does not prerender, so `next dev`, tsc and eslint all
+          pass while `next build` does not. */}
+      <React.Suspense fallback={null}>
+        <ImportByUrl />
+      </React.Suspense>
 
       {/* Search header */}
       <div className="flex flex-col gap-2 sm:flex-row">

@@ -155,13 +155,13 @@ function Workbench({ drill }: { drill: TechnicalDrill }) {
 
       {state.step === "review" && (
         <section className="grid gap-4">
-          <div className={cn("border-l-4 border border-border bg-card p-6", result?.grade.passed ? "border-l-[--color-success]" : "border-l-[--color-warning]") }>
+          <div className={cn("border-l-4 border border-border bg-card p-6", result?.grade.passed ? "border-l-success" : "border-l-warning") }>
             <div className="flex items-start justify-between gap-4">
               <div><p className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Debrief</p><h2 className="mt-2 font-heading text-2xl">{result?.grade.passed ? "The result holds." : "One more pass."}</h2></div>
-              {result?.grade.passed && <CheckCircle2 className="size-6 text-[--color-success]" aria-hidden="true" />}
+              {result?.grade.passed && <CheckCircle2 className="size-6 text-success" aria-hidden="true" />}
             </div>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">{result?.grade.summary ?? "Check an answer to receive deterministic feedback."}</p>
-            {result?.grade.differences.map((difference) => <p key={difference} className="mt-2 text-sm text-[--color-warning]">{difference}</p>)}
+            {result?.grade.differences.map((difference) => <p key={difference} className="mt-2 text-sm text-warning">{difference}</p>)}
             <p className="mt-4 border-t border-border pt-4 text-sm leading-6">{result?.debrief ?? drill.debrief}</p>
             {result?.solution && <pre className="mt-4 overflow-x-auto border border-border bg-muted/40 p-4 font-mono text-xs whitespace-pre-wrap">{result.solution}</pre>}
           </div>

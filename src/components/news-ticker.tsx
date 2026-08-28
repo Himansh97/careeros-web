@@ -38,10 +38,10 @@ import { cn } from "@/lib/utils";
 const SPEED_PX_PER_SECOND = 42;
 
 const TOPIC_STYLES: Record<string, string> = {
-  AI: "text-[--color-chart-1] border-[--color-chart-1]/30",
-  Data: "text-[--color-chart-2] border-[--color-chart-2]/30",
-  Infra: "text-[--color-chart-3] border-[--color-chart-3]/30",
-  Fintech: "text-[--color-chart-4] border-[--color-chart-4]/30",
+  AI: "text-chart-1 border-chart-1/30",
+  Data: "text-chart-2 border-chart-2/30",
+  Infra: "text-chart-3 border-chart-3/30",
+  Fintech: "text-chart-4 border-chart-4/30",
   Tech: "text-muted-foreground border-border",
 };
 

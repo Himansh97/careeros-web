@@ -129,7 +129,7 @@ export function ModelAnswer({ questionId }: { questionId: string }) {
               {draft.claims.map((c) => c.claimId).join(" · ")}
             </p>
             {draft.reviewNotes.length > 0 && (
-              <ul className="mt-2 grid gap-1 text-[11px] text-[--color-warning]">
+              <ul className="mt-2 grid gap-1 text-[11px] text-warning">
                 {draft.reviewNotes.map((n) => (
                   <li key={n}>{n}</li>
                 ))}

@@ -50,7 +50,7 @@ export function HintLadder({
         <div className="border-t border-border p-4">
           {confirming ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="flex gap-2 text-sm text-[--color-warning]">
+              <p className="flex gap-2 text-sm text-warning">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 This attempt cannot earn independent mastery after you reveal the worked solution.
               </p>

@@ -40,7 +40,7 @@ export function InterviewConfig() {
         {VALID_DURATIONS.map((minutes) => <button key={minutes} type="button" onClick={() => setDuration(minutes)} aria-pressed={duration === minutes} className={cn("bg-card p-6 text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px]", duration === minutes && "bg-accent/50")}><Clock3 className="size-5 text-primary" /><span className="mt-8 block font-mono text-4xl tabular-nums">{minutes}</span><span className="text-sm text-muted-foreground">minutes</span></button>)}
       </section>
       <label className="grid max-w-md gap-2 text-sm"><span className="font-medium">Question mix</span><select value={role} onChange={(event) => setRole(event.target.value)} className="h-10 border border-input bg-background px-3 focus-visible:outline-2">{ROLES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><span className="text-xs text-muted-foreground">Mixed rounds interleave SQL, Python, and analytical cases.</span></label>
-      <div><Button size="lg" onClick={() => create.mutate()} disabled={create.isPending}>{create.isPending ? "Freezing question set…" : "Start timed round"}</Button>{create.isError && <p role="alert" className="mt-2 text-sm text-[--color-warning]">{create.error.message}</p>}</div>
+      <div><Button size="lg" onClick={() => create.mutate()} disabled={create.isPending}>{create.isPending ? "Freezing question set…" : "Start timed round"}</Button>{create.isError && <p role="alert" className="mt-2 text-sm text-warning">{create.error.message}</p>}</div>
     </div>
   );
 }
