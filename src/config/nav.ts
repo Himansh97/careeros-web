@@ -1,26 +1,28 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  LayoutDashboard,
-  Search,
-  Briefcase,
-  MailCheck,
-  FileText,
-  Send,
-  ShieldCheck,
-  Bot,
-  Bookmark,
-  BellRing,
-  BarChart3,
   Activity,
-  UserCircle,
-  SlidersHorizontal,
-  Plug,
-  Settings,
-  Home,
-  MoreHorizontal,
+  BarChart3,
+  BellRing,
+  Bookmark,
+  Bot,
+  Braces,
+  Briefcase,
   Contact,
-  Radar,
+  FileText,
+  Home,
+  LayoutDashboard,
+  MailCheck,
   Mic,
+  MoreHorizontal,
+  Plug,
+  Radar,
+  Search,
+  Send,
+  Settings,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  UserCircle,
 } from "lucide-react";
 
 export interface NavItem {
@@ -84,6 +86,20 @@ export const navSections: NavSection[] = [
 ];
 
 /**
+ * Reachable from the Interview Prep page, not the sidebar.
+ *
+ * Same treatment as the settings children below, and for the same reason: the
+ * sidebar is already too wide for one person, and these are places you go from
+ * a page rather than from the rail. They still have to be findable by name —
+ * building a page and linking it from nowhere is how /prep/concepts shipped
+ * invisible.
+ */
+export const prepChildren: NavItem[] = [
+  { title: "Concepts", href: "/prep/concepts", icon: Sparkles },
+  { title: "Technical Lab", href: "/prep/technical", icon: Braces },
+];
+
+/**
  * Reachable from the Settings page, not the sidebar.
  *
  * The command palette still searches them — `allNavItems` includes these —
@@ -99,6 +115,7 @@ export const settingsChildren: NavItem[] = [
 /** Flat list — used by the command palette to search all destinations. */
 export const allNavItems: NavItem[] = [
   ...navSections.flatMap((s) => s.items),
+  ...prepChildren,
   ...settingsChildren,
 ];
 
