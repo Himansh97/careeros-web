@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Quote } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useMotionSafe } from "@/components/motion/primitives";
 import { ConceptDiagram } from "@/components/concepts/concept-visual";
 import type { ConceptCard as Card, ConceptRating } from "@/lib/api/concepts";
 
@@ -93,6 +95,8 @@ export function ConceptFlashcard({
   onRate: (rating: ConceptRating) => void;
   rating: ConceptRating | null;
 }) {
+  const safe = useMotionSafe();
+
   return (
     <div className="flex flex-col rounded-lg border border-border bg-card">
       <div className="border-b border-border px-4 py-3">
@@ -113,8 +117,16 @@ export function ConceptFlashcard({
         </p>
       </div>
 
+      <AnimatePresence mode="wait" initial={false}>
       {!revealed ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-10 text-center">
+        <motion.div
+          key="front"
+          initial={safe ? { opacity: 0 } : false}
+          animate={{ opacity: 1 }}
+          exit={safe ? { opacity: 0 } : undefined}
+          transition={{ duration: 0.15 }}
+          className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-10 text-center"
+        >
           <p className="max-w-sm text-sm text-muted-foreground">
             {card.claims.length > 0
               ? "Say out loud what this is and what you did with it. Then check yourself against your own claim."
@@ -123,9 +135,15 @@ export function ConceptFlashcard({
           <Button onClick={onReveal}>
             {card.claims.length > 0 ? "Show my claim" : "Show the answer"}
           </Button>
-        </div>
+        </motion.div>
       ) : (
-        <div className="flex-1 space-y-5 px-4 py-4">
+        <motion.div
+          key="back"
+          initial={safe ? { opacity: 0, y: 8 } : false}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22 }}
+          className="flex-1 space-y-5 px-4 py-4"
+        >
           {card.claims.length > 0 && (
             <Layer label="What you actually did" tone="primary">
               <div className="space-y-3">
@@ -204,8 +222,9 @@ export function ConceptFlashcard({
               </p>
             </Layer>
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {revealed && (
         <div className="grid grid-cols-2 gap-2 border-t border-border p-3 sm:grid-cols-4">

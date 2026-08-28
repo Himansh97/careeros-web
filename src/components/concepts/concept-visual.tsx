@@ -1,8 +1,11 @@
 "use client";
 
+import * as React from "react";
+import { motion } from "framer-motion";
 import { ArrowRight, ArrowDown, RotateCw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useMotionSafe } from "@/components/motion/primitives";
 import type { ConceptVisual } from "@/lib/api/concepts";
 
 /**
@@ -18,6 +21,13 @@ import type { ConceptVisual } from "@/lib/api/concepts";
  * charting dependency anywhere and draws its own SVG when it needs one. A
  * diagram stored as data is also a diagram you can correct with an UPDATE
  * rather than by redrawing an asset.
+ *
+ * It plays rather than just appearing. A flow runs left to right one node at a
+ * time, a cycle keeps going round, layers stack downward — because the order is
+ * the content here, and a diagram that arrives all at once makes the reader work
+ * out the sequence for themselves. Under `prefers-reduced-motion` everything
+ * lands at once and the caption still says what shape it is, so nothing is
+ * carried by the animation alone.
  */
 
 function Node({
@@ -25,19 +35,29 @@ function Node({
   note,
   index,
   tone = "default",
+  active = false,
+  animate = true,
 }: {
   label: string;
   note?: string;
   index?: number;
   tone?: "default" | "muted";
+  /** The node the sequence is currently on. */
+  active?: boolean;
+  animate?: boolean;
 }) {
   return (
-    <div
+    <motion.div
+      initial={animate ? { opacity: 0, y: 6 } : false}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, delay: animate ? (index ?? 0) * 0.09 : 0 }}
       className={cn(
-        "flex-1 rounded-md border p-2.5",
+        "flex-1 rounded-md border p-2.5 transition-colors duration-500",
         tone === "muted"
           ? "border-border bg-muted/40"
-          : "border-primary/25 bg-primary/[0.04]",
+          : active
+            ? "border-primary/60 bg-primary/10"
+            : "border-primary/25 bg-primary/[0.04]",
       )}
     >
       <div className="flex items-baseline gap-1.5">
@@ -51,12 +71,30 @@ function Node({
       {note && (
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
       )}
-    </div>
+    </motion.div>
   );
 }
 
 export function ConceptDiagram({ visual }: { visual: ConceptVisual }) {
   const { kind, nodes, caption } = visual;
+  const motionSafe = useMotionSafe();
+  const [step, setStep] = React.useState(0);
+
+  // Flows and cycles have an order, so the diagram walks it. `compare` and
+  // `layers` do not — they are read at once — and highlighting a "current" box
+  // there would invent a sequence the concept does not have.
+  const sequenced = kind === "flow" || kind === "cycle";
+
+  React.useEffect(() => {
+    if (!motionSafe || !sequenced) return;
+    const id = window.setInterval(
+      () => setStep((s) => (s + 1) % nodes.length),
+      1400,
+    );
+    return () => window.clearInterval(id);
+  }, [motionSafe, sequenced, nodes.length]);
+
+  const isActive = (i: number) => motionSafe && sequenced && step === i;
 
   return (
     <figure className="rounded-lg border border-border bg-card/60 p-3">
@@ -64,7 +102,7 @@ export function ConceptDiagram({ visual }: { visual: ConceptVisual }) {
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-stretch">
           {nodes.map((node, i) => (
             <div key={node.label} className="flex flex-1 items-center gap-1.5">
-              <Node label={node.label} note={node.note} index={i} />
+              <Node label={node.label} note={node.note} index={i} active={isActive(i)} animate={motionSafe} />
               {i < nodes.length - 1 && (
                 <>
                   <ArrowRight
@@ -90,7 +128,7 @@ export function ConceptDiagram({ visual }: { visual: ConceptVisual }) {
         <div className="space-y-1.5">
           {nodes.map((node, i) => (
             <div key={node.label} style={{ paddingLeft: `${i * 12}px` }}>
-              <Node label={node.label} note={node.note} index={i} />
+              <Node label={node.label} note={node.note} index={i} animate={motionSafe} />
             </div>
           ))}
         </div>
@@ -103,6 +141,8 @@ export function ConceptDiagram({ visual }: { visual: ConceptVisual }) {
               key={node.label}
               label={node.label}
               note={node.note}
+              index={i}
+              animate={motionSafe}
               tone={i === nodes.length - 1 && nodes.length === 3 ? "muted" : "default"}
             />
           ))}
@@ -113,7 +153,7 @@ export function ConceptDiagram({ visual }: { visual: ConceptVisual }) {
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-stretch">
           {nodes.map((node, i) => (
             <div key={node.label} className="flex flex-1 items-center gap-1.5">
-              <Node label={node.label} note={node.note} index={i} />
+              <Node label={node.label} note={node.note} index={i} active={isActive(i)} animate={motionSafe} />
               {i < nodes.length - 1 ? (
                 <ArrowRight
                   className="hidden size-3.5 shrink-0 text-muted-foreground sm:block"
