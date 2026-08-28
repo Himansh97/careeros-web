@@ -20,14 +20,33 @@ export interface ConceptClaim {
   claim: string;
 }
 
+/** A diagram, from a closed four-shape vocabulary the renderer knows. */
+export interface ConceptVisual {
+  kind: "flow" | "layers" | "compare" | "cycle";
+  caption: string;
+  nodes: { label: string; note: string }[];
+}
+
 export interface ConceptCard {
   term: string;
+  /** Empty on a topic card — those are not on the resume and have no claim. */
   claims: ConceptClaim[];
   employers: string[];
   /** Empty until a sourced definition has been seeded for this term. */
   definition: string;
   sources: string[];
   hasDefinition: boolean;
+  /** The plain-English restatement. */
+  simple: string;
+  /** The same, in Hindi. Needs `.font-devanagari` — Geist has no Devanagari. */
+  hindi: string;
+  /** Where the concept shows up in practice, and its honest limits. */
+  application: string;
+  visual: ConceptVisual | null;
+  /** Which layers a model restated rather than a source asserting them. */
+  derived: string[];
+  /** How many of the five layers are filled. */
+  layers: number;
   /** Leitner box, 1–5. Zero means never reviewed. */
   box: number;
   maxBox: number;
@@ -76,3 +95,35 @@ export const reviewConcept = (term: string, rating: ConceptRating) =>
         { method: "POST", body: JSON.stringify({ rating }) },
       )
     : Promise.resolve<ApiResult<ReviewResult>>({ ok: false, reason: "not_connected" });
+
+export interface ConceptTopic {
+  slug: string;
+  title: string;
+  blurb: string;
+  terms: string[];
+}
+
+/**
+ * Subjects to study beyond the resume.
+ *
+ * The resume deck answers "can you defend what you wrote". These answer "do you
+ * know the field you say you work in" — the questions that do not quote your own
+ * bullet back at you.
+ */
+export const listTopics = () =>
+  isLiveApi()
+    ? apiFetch<{ topics: ConceptTopic[] }>("/api/prep/concepts/topics")
+    : Promise.resolve<ApiResult<{ topics: ConceptTopic[] }>>({
+        ok: false,
+        reason: "not_connected",
+      });
+
+export const getTopic = (slug: string) =>
+  isLiveApi()
+    ? apiFetch<ConceptTopic & { cards: ConceptCard[] }>(
+        `/api/prep/concepts/topics/${encodeURIComponent(slug)}`,
+      )
+    : Promise.resolve<ApiResult<ConceptTopic & { cards: ConceptCard[] }>>({
+        ok: false,
+        reason: "not_connected",
+      });

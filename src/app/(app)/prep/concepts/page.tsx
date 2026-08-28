@@ -13,7 +13,9 @@ import { ScoreAssay } from "@/components/score-assay";
 import { StarChart } from "@/components/concepts/star-chart";
 import { ConceptFlashcard } from "@/components/concepts/concept-card";
 import {
+  getTopic,
   listConcepts,
+  listTopics,
   reviewConcept,
   type ConceptRating,
 } from "@/lib/api/concepts";
@@ -31,6 +33,8 @@ import {
  */
 export default function ConceptsPage() {
   const queryClient = useQueryClient();
+  // null = the resume deck. A slug = a curated topic.
+  const [topic, setTopic] = React.useState<string | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
   const [revealed, setRevealed] = React.useState(false);
   const [pending, setPending] = React.useState<ConceptRating | null>(null);
@@ -38,6 +42,19 @@ export default function ConceptsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["concepts"],
     queryFn: listConcepts,
+    retry: false,
+  });
+
+  const topicList = useQuery({
+    queryKey: ["concept-topics"],
+    queryFn: listTopics,
+    retry: false,
+  });
+
+  const topicDeck = useQuery({
+    queryKey: ["concept-topic", topic],
+    queryFn: () => getTopic(topic as string),
+    enabled: topic !== null,
     retry: false,
   });
 
@@ -70,7 +87,12 @@ export default function ConceptsPage() {
     );
   }
 
-  const { overview, cards } = data.data;
+  const { overview } = data.data;
+  const topics = topicList.data?.ok ? topicList.data.data.topics : [];
+  const topicCards = topicDeck.data?.ok ? topicDeck.data.data.cards : [];
+  // One card list feeds both the chart and the flashcard, so switching decks
+  // cannot leave the two showing different things.
+  const cards = topic === null ? data.data.cards : topicCards;
   const card = cards.find((c) => c.term === selected) ?? null;
   const due = cards.filter((c) => c.due);
 
@@ -98,8 +120,9 @@ export default function ConceptsPage() {
       <PageHeader
         title="Concepts"
         description={
-          `Every technical term on your resume, drawn as a sky. ` +
-          `Brightness is how well you know it.`
+          topic === null
+            ? "Every technical term on your resume, drawn as a sky. Brightness is how well you know it."
+            : topics.find((t) => t.slug === topic)?.blurb ?? "A curated set of concepts."
         }
         action={
           due.length > 0 ? (
@@ -143,9 +166,43 @@ export default function ConceptsPage() {
         </dl>
       </div>
 
+      <div className="flex flex-wrap gap-1.5">
+        <Button
+          variant={topic === null ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setTopic(null);
+            setSelected(null);
+          }}
+        >
+          From your resume
+          <span className="ml-1 font-mono text-[10px] tabular-nums opacity-70">
+            {overview.total}
+          </span>
+        </Button>
+        {topics.map((t) => (
+          <Button
+            key={t.slug}
+            variant={topic === t.slug ? "default" : "outline"}
+            size="sm"
+            title={t.blurb}
+            onClick={() => {
+              setTopic(t.slug);
+              setSelected(null);
+            }}
+          >
+            {t.title}
+            <span className="ml-1 font-mono text-[10px] tabular-nums opacity-70">
+              {t.terms.length}
+            </span>
+          </Button>
+        ))}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
         <StarChart
           cards={cards}
+          fallbackGroup={topics.find((t) => t.slug === topic)?.title ?? "Concepts"}
           selected={selected}
           onSelect={(term) => {
             setSelected(term);

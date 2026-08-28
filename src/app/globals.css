@@ -200,6 +200,14 @@
 
 /* The display face is deliberately scarce: page titles and the score assay.
    Applied more widely it stops being a signal and becomes the new default. */
+/* Hindi on concept cards. Geist carries no Devanagari at all, so without this
+   the whole layer renders as tofu boxes. Scoped to a class rather than the body
+   stack because it is wanted on specific passages and nowhere else. */
+.font-devanagari {
+  font-family: var(--font-devanagari), var(--font-sans), sans-serif;
+  line-height: 1.75;
+}
+
 .font-display {
   font-family: var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }

@@ -49,24 +49,27 @@ export function StarChart({
   cards,
   selected,
   onSelect,
+  fallbackGroup = "Unattributed",
 }: {
   cards: ConceptCard[];
   selected: string | null;
   onSelect: (term: string) => void;
+  /** Heading for cards with no employer — topic cards are not on the resume. */
+  fallbackGroup?: string;
 }) {
   const safe = useMotionSafe();
 
   const constellations = React.useMemo(() => {
     const groups = new Map<string, ConceptCard[]>();
     for (const card of cards) {
-      const key = card.employers[0] ?? "Unattributed";
+      const key = card.employers[0] ?? fallbackGroup;
       const list = groups.get(key);
       if (list) list.push(card);
       else groups.set(key, [card]);
     }
     // Biggest constellation first, so the eye starts where most of the resume is.
     return [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
-  }, [cards]);
+  }, [cards, fallbackGroup]);
 
   return (
     <div className="space-y-4">

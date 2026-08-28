@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Archivo } from "next/font/google";
+import { Geist, Geist_Mono, Archivo, Noto_Sans_Devanagari } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -31,6 +31,23 @@ const displayFont = Archivo({
   display: "swap",
 });
 
+/**
+ * Devanagari, for the Hindi layer on concept cards.
+ *
+ * Geist, Geist Mono and Archivo all load `subsets: ["latin"]` and carry no
+ * Devanagari glyphs at all, so Hindi set in them renders as tofu boxes or falls
+ * through to whatever the OS happens to have. A second script needs a second
+ * face; there is no way around it.
+ *
+ * Applied through `.font-devanagari` rather than the body stack, because it is
+ * wanted on specific passages and nowhere else.
+ */
+const devanagari = Noto_Sans_Devanagari({
+  variable: "--font-devanagari",
+  subsets: ["devanagari", "latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "CareerOS",
   // Names what it does, not what it is built from.
@@ -42,7 +59,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable} ${devanagari.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
