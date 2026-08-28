@@ -90,7 +90,11 @@
      change — so no markup has to know a theme was swapped underneath it. */
   --success: oklch(0.52 0.14 148);
   --success-foreground: oklch(0.99 0 0);
-  --warning: oklch(0.62 0.15 68);
+  /* Was oklch(0.62 0.15 68), which measures 3.60:1 against --background —
+     under AA, and this token is used as body text, often at 10 or 11px. 0.55
+     gives 4.79:1 on the background and 5.00:1 on --card, same hue and chroma.
+     Dark mode needs no change; it is already 9.04:1. */
+  --warning: oklch(0.55 0.15 68);
   --warning-foreground: oklch(0.15 0.01 60);
   --info: oklch(0.45 0.09 240);
   --info-foreground: oklch(0.99 0 0);

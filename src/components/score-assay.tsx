@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { scoreLabel } from "@/components/score-badge";
+import { BAND_TONE, scoreBand, scoreLabel } from "@/components/score-badge";
 
 /**
  * A score, stamped with what it rests on.
@@ -33,12 +33,11 @@ interface ScoreAssayProps {
   className?: string;
 }
 
-function tone(score: number): string {
-  if (score >= 85) return "text-primary";
-  if (score >= 70) return "text-foreground";
-  if (score >= 60) return "text-warning";
-  return "text-destructive";
-}
+// Was a second ladder breaking at 85/70/60 against the badge's 90/80/70/60, so
+// an 87 read top-band here and "Strong" there. Same bands now, and `primary` is
+// gone from it: that token is the same red as `destructive`, which made the
+// best scores in the app the colour of an error.
+const tone = (score: number): string => BAND_TONE[scoreBand(score)];
 
 export function ScoreAssay({
   score,
