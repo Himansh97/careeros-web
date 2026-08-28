@@ -6,6 +6,7 @@ import { PanelLeftClose, PanelLeftOpen, Bot, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navSections, type NavItem } from "@/config/nav";
 import { useSidebar } from "@/components/app-shell/sidebar-context";
+import { useAutopilot } from "@/lib/hooks/use-autopilot";
 import {
   Tooltip,
   TooltipContent,
@@ -53,6 +54,7 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 
 export function AppSidebar() {
   const { collapsed, toggle } = useSidebar();
+  const { busy } = useAutopilot();
 
   return (
     <aside
@@ -119,14 +121,26 @@ export function AppSidebar() {
             collapsed && "justify-center px-0"
           )}
         >
+          {/* Live, from the same hook the top nav uses. Both of these pills
+              were hardcoded once; the top-nav one was fixed and this was left,
+              so the app showed "Running" in one corner and "idle" in the other
+              during the same run. A status that cannot change is decoration
+              wearing the costume of a reading. */}
           <span className="relative flex size-2 shrink-0">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-muted-foreground/40" />
-            <span className="relative inline-flex size-2 rounded-full bg-muted-foreground/60" />
+            {busy && (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70" />
+            )}
+            <span
+              className={cn(
+                "relative inline-flex size-2 rounded-full",
+                busy ? "bg-success" : "bg-muted-foreground/60"
+              )}
+            />
           </span>
           {!collapsed && (
             <span className="flex items-center gap-1.5 text-sidebar-foreground/70">
               <Bot className="size-3.5" strokeWidth={1.75} />
-              Autopilot idle
+              {busy ? "Autopilot running" : "Autopilot idle"}
             </span>
           )}
         </div>

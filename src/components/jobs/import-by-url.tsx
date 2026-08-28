@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Link2, Loader2, AlertTriangle, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ import type { ImportedJobResult } from "@/lib/api/jobs";
  */
 export function ImportByUrl() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const [url, setUrl] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [problem, setProblem] = React.useState<ImportedJobResult | null>(null);
@@ -28,6 +30,14 @@ export function ImportByUrl() {
   const [title, setTitle] = React.useState("");
   const [company, setCompany] = React.useState("");
   const [description, setDescription] = React.useState("");
+
+  // "Add Job" in the top nav lands here. It used to navigate to /jobs and stop,
+  // so a plus icon promised an action and delivered a page — the form it meant
+  // was already on screen with nothing pointing at it.
+  const wantsAdd = searchParams.get("add") === "1";
+  React.useEffect(() => {
+    if (wantsAdd) inputRef.current?.focus();
+  }, [wantsAdd]);
 
   async function submitUrl(e: React.FormEvent) {
     e.preventDefault();
@@ -93,6 +103,7 @@ export function ImportByUrl() {
         <div className="relative flex-1">
           <Link2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            ref={inputRef}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste a job posting link…"

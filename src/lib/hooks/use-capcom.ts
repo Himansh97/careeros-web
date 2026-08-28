@@ -43,7 +43,21 @@ export function useCapcom(): { lines: CapcomLine[]; loading: boolean } {
     enabled: live,
   });
   const evidence = useQuery({ queryKey: ["evidence"], queryFn: listEvidence, enabled: live });
-  const gaps = useQuery({ queryKey: ["skill-gaps"], queryFn: listSkillGaps, enabled: live });
+  // Read, never fetch. `/api/skill-gaps` refetches every source and rescores
+  // the whole target set — over thirty seconds on a cold discovery cache — and
+  // CAPCOM is mounted in the app shell, so leaving this enabled fired that work
+  // from every route in the app. The line it produces is the panel's least
+  // urgent, gated behind `lines.length < 4`.
+  //
+  // So the gap line appears once something that exists to show gaps has loaded
+  // it: /analytics or /review, both of which share this query key. Everywhere
+  // else the panel is simply one line shorter, which is the right trade for not
+  // making an unrelated page wait on a whole-pool rescore.
+  const gaps = useQuery({
+    queryKey: ["skill-gaps"],
+    queryFn: listSkillGaps,
+    enabled: false,
+  });
 
   const loading = alerts.isLoading || approvals.isLoading;
   const lines: CapcomLine[] = [];
