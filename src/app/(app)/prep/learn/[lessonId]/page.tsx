@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMotionSafe } from "@/components/motion/primitives";
+import { Diagram } from "@/components/diagram/diagram";
 import {
   getLesson,
   markExplained,
@@ -229,6 +230,18 @@ export default function LessonPage() {
           </p>
         )}
       </div>
+
+      {/* The picture the explanation was building toward. It sits between the
+          teaching and the example on purpose — after the words that earn it,
+          before the query that tests it. */}
+      {l.visual && (
+        <section>
+          <h2 className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            Picture it
+          </h2>
+          <Diagram spec={l.visual} />
+        </section>
+      )}
 
       {/* ---- the worked example, already run ---- */}
       {l.example && (

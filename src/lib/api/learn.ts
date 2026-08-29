@@ -51,6 +51,8 @@ export interface LessonDetail {
     sql: string | null;
     result: QueryResult | null;
   } | null;
+  /** The diagram, in the shared renderer's vocabulary. */
+  visual: import("@/components/diagram/diagram").DiagramSpec | null;
   practiceDrillId: string | null;
   status: LessonStatus;
 }
