@@ -24,6 +24,7 @@ import { EmptyState } from "@/components/empty-state";
 import { JobCard } from "@/components/job-card";
 import { AlertsBanner } from "@/components/alerts-banner";
 import { DailyApplicationCounter } from "@/components/applications/daily-application-counter";
+import { RoundStrip } from "@/components/round/round-strip";
 import { DeadlineCountdownCard } from "@/components/deadline-countdown";
 import { MotionList, MotionListItem, Stagger } from "@/components/motion/primitives";
 import { searchJobs } from "@/lib/api/jobs";
@@ -135,6 +136,10 @@ export default function DashboardPage() {
       <DeadlineCountdownCard config={deadline} />
 
       <DailyApplicationCounter applications={applications} />
+
+      {/* The daily round lives here rather than only at /prep/round: a challenge
+          you have to remember to open is one you stop opening. */}
+      <RoundStrip />
 
       {/* Staggered so the row reads left-to-right as it lands rather than
           appearing all at once — the same order you read it in. Capped inside

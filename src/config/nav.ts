@@ -9,6 +9,7 @@ import {
   Briefcase,
   Contact,
   FileText,
+  Flame,
   Home,
   LayoutDashboard,
   MailCheck,
@@ -95,6 +96,7 @@ export const navSections: NavSection[] = [
  * invisible.
  */
 export const prepChildren: NavItem[] = [
+  { title: "Today's Round", href: "/prep/round", icon: Flame },
   { title: "Concepts", href: "/prep/concepts", icon: Sparkles },
   { title: "Technical Lab", href: "/prep/technical", icon: Braces },
 ];
