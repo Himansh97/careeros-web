@@ -16,8 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Diagram } from "@/components/diagram/diagram";
 import { cn } from "@/lib/utils";
-import { listConcepts } from "@/lib/api/concepts";
-import { listLessons } from "@/lib/api/learn";
+import { explainTerm } from "@/lib/api/learn";
 
 /**
  * A requirement you can learn without leaving the application you were making.
@@ -28,9 +27,14 @@ import { listLessons } from "@/lib/api/learn";
  * is already open, already relevant, and already the moment you are wondering
  * whether you can defend a term. So the term itself becomes the door.
  *
- * It costs nothing when ignored: a term with no card is plain text, and the
- * concepts list is already in the query cache from elsewhere, so opening one
- * makes no request.
+ * Matching used to happen here, against an exact card term and a lesson title
+ * substring, and it resolved roughly one requirement in ten: a posting says
+ * "ETL", "Airflow", "A/B testing", and no lesson is called any of those. The
+ * server resolves it now, using the same alias vocabulary that scoring uses
+ * plus a `teaches` list authored per lesson.
+ *
+ * A term nothing teaches stays plain text. That silence is the reason the
+ * dotted underline is worth trusting when it does appear.
  */
 export function LearnableTerm({
   term,
@@ -39,38 +43,19 @@ export function LearnableTerm({
   term: string;
   className?: string;
 }) {
-  const concepts = useQuery({
-    queryKey: ["concepts"],
-    queryFn: listConcepts,
+  const explained = useQuery({
+    queryKey: ["explain", term.toLowerCase()],
+    queryFn: () => explainTerm(term),
     retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
-  const lessons = useQuery({
-    queryKey: ["lessons"],
-    queryFn: () => listLessons(),
-    retry: false,
-    staleTime: 5 * 60 * 1000,
+    // Requirements repeat constantly across postings, and the answer only
+    // changes when the curriculum does.
+    staleTime: 30 * 60 * 1000,
   });
 
-  const card = concepts.data?.ok
-    ? concepts.data.data.cards.find(
-        (c) => c.term.toLowerCase() === term.toLowerCase() && c.hasDefinition,
-      )
-    : undefined;
+  const result = explained.data?.ok ? explained.data.data : undefined;
+  const card = result?.card ?? null;
+  const lesson = result?.lesson ?? null;
 
-  // A lesson whose title or concept slug names this requirement. Looser than
-  // the card match on purpose — "SQL" should reach the SQL track even though no
-  // lesson is called "SQL".
-  const lesson = lessons.data?.ok
-    ? lessons.data.data.lessons.find(
-        (l) =>
-          l.track.toLowerCase() === term.toLowerCase() ||
-          l.title.toLowerCase().includes(term.toLowerCase()),
-      )
-    : undefined;
-
-  // Nothing written for it yet — stay out of the way entirely rather than
-  // offering a door that opens onto an apology.
   if (!card && !lesson) {
     return <span className={className}>{term}</span>;
   }
@@ -135,6 +120,28 @@ export function LearnableTerm({
                 Where it shows up
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-foreground">{card.application}</p>
+            </section>
+          )}
+
+          {/* The lesson's own diagram. On a `sequence` this is the played
+              explainer — the thirty seconds that make the term stick get spent
+              here, on the job page, without going anywhere. */}
+          {lesson && (
+            <section className={cn(card && "border-t border-border pt-5")}>
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                {lesson.track} · {lesson.level}
+              </h3>
+              <p className="mt-2 text-sm font-medium leading-snug text-foreground">
+                {lesson.title}
+              </p>
+              <p className="mt-1 max-w-prose text-sm leading-relaxed text-muted-foreground">
+                {lesson.hook}
+              </p>
+              {lesson.visual && (
+                <div className="mt-3">
+                  <Diagram spec={lesson.visual} />
+                </div>
+              )}
             </section>
           )}
 

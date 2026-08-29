@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import { useMotionSafe } from "@/components/motion/primitives";
+import { Sequence, type SequenceSpec } from "@/components/diagram/sequence";
 
 /**
  * Diagrams that carry meaning in a visual channel rather than in a box.
@@ -55,7 +56,10 @@ export type DiagramSpec =
     }
   | { kind: "sets"; caption?: string; left: string; right: string; fill: ("left" | "both" | "right")[] }
   | { kind: "bars"; caption?: string; nodes: DiagramNode[]; unit?: string }
-  | { kind: "flow" | "layers" | "compare" | "cycle"; caption?: string; nodes: DiagramNode[] };
+  | { kind: "flow" | "layers" | "compare" | "cycle"; caption?: string; nodes: DiagramNode[] }
+  // An explainer that plays through its stages, narrating one line at a time.
+  // A still picture is worst at exactly the thing a process is made of: order.
+  | SequenceSpec;
 
 const TONE_STROKE: Record<string, string> = {
   good: "stroke-success",
@@ -379,6 +383,9 @@ function Boxes({
 }
 
 export function Diagram({ spec }: { spec: DiagramSpec }) {
+  // The sequence brings its own controls and caption, so it is not wrapped.
+  if (spec.kind === "sequence") return <Sequence spec={spec} />;
+
   return (
     <Frame caption={spec.caption}>
       {spec.kind === "fanout" && <Fanout nodes={spec.nodes} factor={spec.factor} />}

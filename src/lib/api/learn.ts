@@ -111,3 +111,39 @@ export const markExplained = (id: string) =>
         { method: "POST" },
       )
     : offline<{ lessonId: string; state: string }>();
+
+/**
+ * What teaches a requirement, resolved server-side from the posting's own
+ * wording. Matching lived in the component before this and matched almost
+ * nothing: a job page says "ETL" or "A/B testing", and no lesson is titled
+ * either. The server owns the vocabulary because it already owns the one used
+ * for scoring.
+ */
+export interface Explanation {
+  term: string;
+  card: {
+    term: string;
+    claims: { claimId: string; claim: string; employer: string }[];
+    definition: string;
+    simple: string;
+    application: string;
+    visual: import("@/components/diagram/diagram").DiagramSpec | null;
+  } | null;
+  lesson: {
+    id: string;
+    title: string;
+    track: string;
+    level: string;
+    hook: string;
+    visual: import("@/components/diagram/diagram").DiagramSpec | null;
+  } | null;
+  /** How it was found, or null when nothing teaches it. */
+  matched: "exact" | "alias" | "card" | null;
+}
+
+export const explainTerm = (term: string) =>
+  isLiveApi()
+    ? apiFetch<Explanation>(
+        `/api/learn/explain?term=${encodeURIComponent(term)}`,
+      )
+    : offline<Explanation>();
