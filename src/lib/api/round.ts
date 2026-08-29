@@ -11,14 +11,23 @@ import { apiFetch, isLiveApi, type ApiResult } from "@/lib/api/client";
  * `kind` decides where the item goes. A definable requirement gets a concept
  * card. A behavioural one — and the two most-demanded requirements in the whole
  * pipeline are behavioural — goes to the STAR drill in /prep, because "explain
- * stakeholder management" is a question nobody wants answered.
+ * stakeholder management" is a question nobody wants answered. A lesson opens
+ * the tutor.
+ *
+ * A round is one demand item plus a lesson from each of the two sides — an
+ * interview track and an AI track. The demand item is what is about to be
+ * asked; the lessons are what builds the ability to answer it.
  */
 
 export interface RoundItem {
   term: string;
   /** How many staged jobs name this requirement. */
   demand: number;
-  kind: "concept" | "behavioural";
+  kind: "concept" | "behavioural" | "lesson";
+  /** Set for lesson items — the lesson to open. */
+  lessonId?: string;
+  track?: string;
+  level?: string;
   /** Set for behavioural items: the /prep question to answer instead. */
   questionId: string;
   companies: string[];

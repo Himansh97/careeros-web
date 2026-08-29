@@ -4,7 +4,7 @@ import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { AlertCircle, ArrowRight, Check, Flame, Mic } from "lucide-react";
+import { AlertCircle, ArrowRight, Check, Flame, GraduationCap, Mic } from "lucide-react";
 
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -239,7 +239,7 @@ export default function RoundPage() {
         >
           {/* Why this item is in front of you, before anything else. */}
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <DemandBadge item={item} />
+            {item.kind !== "lesson" && <DemandBadge item={item} />}
             {item.companies.length > 0 && (
               <span className="text-xs text-muted-foreground">
                 including {item.companies.slice(0, 3).join(", ")}
@@ -247,7 +247,37 @@ export default function RoundPage() {
             )}
           </div>
 
-          {item.kind === "behavioural" ? (
+          {item.kind === "lesson" ? (
+            // A lesson is not answered here — it is taught elsewhere. The round
+            // puts it in front of you and hands off; grading a lesson would be
+            // grading whether you read something.
+            <div className="rounded-lg border border-border bg-card p-5">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
+                {item.track} · {item.level}
+              </span>
+              <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-foreground">
+                {item.term}
+              </h2>
+              <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+                Next in the track. It is taught rather than tested — read it, interrupt
+                as much as you like, and come back.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button asChild>
+                  <Link href={`/prep/learn/${item.lessonId}`}>
+                    <GraduationCap className="size-3.5" strokeWidth={1.75} />
+                    Teach me this
+                  </Link>
+                </Button>
+                <Button variant="outline" onClick={() => void advance("good")}>
+                  Already know it
+                </Button>
+                <Button variant="ghost" onClick={() => void advance("again")}>
+                  Skip for now
+                </Button>
+              </div>
+            </div>
+          ) : item.kind === "behavioural" ? (
             // No card for these, deliberately. A story graded against the
             // evidence file is the only honest way to practise them.
             <div className="rounded-lg border border-border bg-card p-5">
