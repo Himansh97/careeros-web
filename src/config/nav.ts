@@ -10,6 +10,7 @@ import {
   Contact,
   FileText,
   Flame,
+  GraduationCap,
   Home,
   LayoutDashboard,
   MailCheck,
@@ -97,6 +98,7 @@ export const navSections: NavSection[] = [
  */
 export const prepChildren: NavItem[] = [
   { title: "Today's Round", href: "/prep/round", icon: Flame },
+  { title: "Learn", href: "/prep/learn", icon: GraduationCap },
   { title: "Concepts", href: "/prep/concepts", icon: Sparkles },
   { title: "Technical Lab", href: "/prep/technical", icon: Braces },
 ];
