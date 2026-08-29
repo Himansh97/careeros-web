@@ -7,7 +7,7 @@ import { Loader2, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useMotionSafe } from "@/components/motion/primitives";
-import { ConceptDiagram } from "@/components/concepts/concept-visual";
+import { Diagram } from "@/components/diagram/diagram";
 import type { ConceptCard as Card, ConceptRating } from "@/lib/api/concepts";
 
 /**
@@ -205,7 +205,7 @@ export function ConceptFlashcard({
 
               {card.visual && (
                 <Layer label="Picture it" derived={card.derived.includes("visual")}>
-                  <ConceptDiagram visual={card.visual} />
+                  <Diagram spec={card.visual} />
                 </Layer>
               )}
             </>

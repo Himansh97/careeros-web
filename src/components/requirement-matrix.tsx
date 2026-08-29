@@ -8,11 +8,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { LearnableTerm } from "@/components/learn/learnable-term";
 import type { Requirement } from "@/types/job";
 
 const matchConfig = {
   exact: { icon: Check, label: "Exact", className: "text-primary" },
-  partial: { icon: CircleDot, label: "Partial", className: "text-[oklch(0.5_0.12_70)] dark:text-[oklch(0.8_0.12_80)]" },
+  partial: { icon: CircleDot, label: "Partial", className: "text-warning" },
   gap: { icon: X, label: "Gap", className: "text-destructive" },
 };
 
@@ -32,7 +33,9 @@ export function RequirementMatrix({ requirements }: { requirements: Requirement[
           const cfg = matchConfig[req.match];
           return (
             <TableRow key={req.id}>
-              <TableCell className="font-medium text-foreground">{req.label}</TableCell>
+              <TableCell className="font-medium text-foreground">
+                <LearnableTerm term={req.label} />
+              </TableCell>
               <TableCell>
                 <Badge variant={req.importance === "required" ? "default" : "secondary"} className="font-normal">
                   {req.importance === "required" ? "Required" : "Preferred"}

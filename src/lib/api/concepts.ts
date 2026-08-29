@@ -20,12 +20,15 @@ export interface ConceptClaim {
   claim: string;
 }
 
-/** A diagram, from a closed four-shape vocabulary the renderer knows. */
-export interface ConceptVisual {
-  kind: "flow" | "layers" | "compare" | "cycle";
-  caption: string;
-  nodes: { label: string; note: string }[];
-}
+/**
+ * A diagram the shared renderer knows how to draw.
+ *
+ * Four of these draw boxes, which is honest when the content really is a
+ * sequence or a set of alternatives. The other four carry meaning in a visual
+ * channel — diverging lines, opacity, plotted paths, length — which is the only
+ * thing that makes a picture worth the space it takes.
+ */
+export type ConceptVisual = import("@/components/diagram/diagram").DiagramSpec;
 
 export interface ConceptCard {
   term: string;
