@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -74,12 +74,32 @@ function Prose({ text }: { text: string }) {
   );
 }
 
+/**
+ * `useSearchParams` forces this subtree to be client-rendered, and Next refuses
+ * to build a page that reads it without a boundary — `next dev`, `tsc` and
+ * `eslint` all pass while `next build` fails, which has already cost a broken
+ * production build in this repo once.
+ */
 export default function LessonPage() {
+  return (
+    <React.Suspense fallback={<Skeleton className="h-96 w-full" />}>
+      <Lesson />
+    </React.Suspense>
+  );
+}
+
+function Lesson() {
   const params = useParams<{ lessonId: string }>();
+  // Arriving from a failed explain-back: one idea was missed or stated
+  // backwards, and re-teaching the whole lesson would bury the answer to the
+  // question that actually brought them here.
+  const stuckOn = useSearchParams().get("stuck") ?? "";
   const queryClient = useQueryClient();
   const motionSafe = useMotionSafe();
 
-  const [thread, setThread] = React.useState<Turn[]>([]);
+  const [thread, setThread] = React.useState<Turn[]>(() =>
+    stuckOn ? [{ role: "learner", content: stuckOn }] : [],
+  );
   const [question, setQuestion] = React.useState("");
   const [busy, setBusy] = React.useState<TeachMode | null>(null);
   const started = React.useRef(false);
@@ -101,9 +121,9 @@ export default function LessonPage() {
     },
   });
 
-  async function ask(mode: TeachMode, message = "") {
+  async function ask(mode: TeachMode, message = "", push = true) {
     setBusy(mode);
-    if (message) setThread((t) => [...t, { role: "learner", content: message }]);
+    if (message && push) setThread((t) => [...t, { role: "learner", content: message }]);
     const history = thread.map((t) => ({
       role: t.role === "tutor" ? "assistant" : "user",
       content: t.content,
@@ -132,7 +152,8 @@ export default function LessonPage() {
   React.useEffect(() => {
     if (started.current || !lesson.data?.ok) return;
     started.current = true;
-    void ask("teach");
+    // Already in the thread as the opening turn, so it must not be pushed again.
+    void ask(stuckOn ? "stuck" : "teach", stuckOn, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson.data?.ok]);
 

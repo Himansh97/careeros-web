@@ -8,6 +8,7 @@ import { ArrowLeft, Building2, MapPin, AlertCircle, UserCheck, ArrowRight, Refre
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { InterviewPack } from "@/components/applications/interview-pack";
+import { DefendIt } from "@/components/learn/defend-it";
 import { RecordOutcome } from "@/components/applications/record-outcome";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
@@ -149,6 +150,12 @@ export default function ApplicationDetailPage() {
           {app.nextAction}
         </p>
       </div>
+
+      {/* Directly under the application, above everything that is about waiting.
+          The minute after staging is the only minute when explaining a
+          requirement out loud feels like preparation rather than revision. It
+          renders nothing when this posting has no requirement with material. */}
+      <DefendIt jobId={app.jobId} />
 
       <div className="rounded-lg border border-border bg-card p-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

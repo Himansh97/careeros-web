@@ -147,3 +147,71 @@ export const explainTerm = (term: string) =>
         `/api/learn/explain?term=${encodeURIComponent(term)}`,
       )
     : offline<Explanation>();
+
+/**
+ * Say it back in your own words, and be told what you left out.
+ *
+ * Never a score, by design — three buckets and one thing worth re-learning.
+ * `backwards` is the only real failure: `missed` means absent, which is not the
+ * same as wrong.
+ */
+export interface CheckedPoint {
+  n: number;
+  point: string;
+  /** Your own words, verbatim, where you stated it inverted. */
+  quote?: string | null;
+}
+
+export interface ExplainBack {
+  ok: boolean;
+  reason?: string;
+  lessonId: string;
+  lessonTitle: string;
+  term: string | null;
+  carried: CheckedPoint[];
+  missed: CheckedPoint[];
+  backwards: CheckedPoint[];
+  /** The one idea worth being taught again. Hands straight to `stuck`. */
+  next: { n: number; point: string } | null;
+  /** Nothing missing and nothing inverted. Only then is it "explained". */
+  settled: boolean;
+  state?: string;
+  costUsd?: number;
+}
+
+export const explainBack = (
+  explanation: string,
+  target: { term?: string; lessonId?: string },
+) =>
+  isLiveApi()
+    ? apiFetch<ExplainBack>("/api/learn/explain-back", {
+        method: "POST",
+        body: JSON.stringify({ explanation, ...target }),
+      })
+    : offline<ExplainBack>();
+
+/** What a posting will make you defend out loud, drawn from its requirements. */
+export interface DefendItem {
+  term: string;
+  claimed: boolean;
+  importance: string;
+  lessonId: string;
+  lessonTitle: string;
+  hook: string;
+  settled: boolean;
+  points: number;
+}
+
+export interface DefendSet {
+  jobId: string;
+  title: string;
+  company: string;
+  items: DefendItem[];
+  settledCount: number;
+  total: number;
+}
+
+export const getDefendSet = (jobId: string) =>
+  isLiveApi()
+    ? apiFetch<DefendSet>(`/api/jobs/${encodeURIComponent(jobId)}/defend`)
+    : offline<DefendSet>();
