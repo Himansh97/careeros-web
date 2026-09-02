@@ -49,3 +49,20 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+
+# --- ruflo runtime state (npx ruflo init) ---
+# Local orchestration scaffolding and its databases. Ignored rather than
+# committed so adopting or dropping ruflo never shows up as a repo change.
+.claude-flow/
+.agents/
+.swarm/
+ruvector.db
+.mcp.json

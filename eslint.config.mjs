@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local agent tooling, not application source. `ruflo init` drops ~40
+    // helper scripts into .claude/, and they lint at 29 errors — none of them
+    // ours and none of them fixable here. Without this, `npm run lint` never
+    // returns clean again and stops being a signal about src/.
+    ".claude/**",
   ]),
 ]);
 
