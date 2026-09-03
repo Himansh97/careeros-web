@@ -26,6 +26,7 @@ import { searchJobs, refreshJobs } from "@/lib/api/jobs";
 import { saveSearch } from "@/lib/saved-searches";
 import { createSavedSearch } from "@/lib/api/ops";
 import { isLiveApi } from "@/lib/api/client";
+import { RegionToggle } from "@/components/jobs/region-toggle";
 import { useJobFlags } from "@/lib/hooks/use-job-flags";
 import { useDebounced } from "@/lib/hooks/use-debounced";
 import type { Job, JobSearchFilters, JobSort, WorkArrangement } from "@/types/job";
@@ -210,10 +211,15 @@ export default function JobsPage() {
         title="Discover Jobs"
         description="Live across Greenhouse, Ashby, Lever, Workday, SmartRecruiters, The Muse, Arbeitnow and RemoteOK — scored against your real evidence."
         action={
-          /* Discovery is lazy and cached for 15 minutes, so the pool only moved
+          <div className="flex flex-wrap items-center justify-end gap-2">
+          {/* Which market, before how fresh: switching region changes which
+              sources are read, so it invalidates the pool that Fetch refreshes.
+              Ordering them the other way invited fetching and then discarding. */}
+          <RegionToggle />
+          {/* Discovery is lazy and cached for 15 minutes, so the pool only moved
              when the 07:00 job ran or someone opened the app. This is the "look
              again now" that was missing. It fetches only — nothing is scored,
-             tailored or queued. */
+             tailored or queued. */}
           <Button
             variant="outline"
             size="sm"
@@ -226,6 +232,7 @@ export default function JobsPage() {
             />
             {refreshing ? "Fetching…" : "Fetch now"}
           </Button>
+          </div>
         }
       />
 
