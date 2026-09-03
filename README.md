@@ -3,8 +3,28 @@
 > **Part of CareerOS** — [careeros-api](https://github.com/Himansh97/careeros-api) (backend) · **careeros-web** (frontend)
 
 Frontend for CareerOS. Next.js 16, React 19, TypeScript, Tailwind v4, shadcn/ui.
-27 routes over one pipeline: discovery, fit breakdowns, in-app resume editing,
+35 routes over one pipeline: discovery, fit breakdowns, in-app resume editing,
 approvals, recruiter messages, outreach and interview practice.
+
+![Resume tailoring: job requirements checked against recorded evidence on the left, the tailored resume in the middle with per-bullet provenance, and a recruiter audit on the right](docs/screenshots/resume-tailoring.png)
+
+The screenshot above is the whole argument in one view. Requirements are ticked
+only where evidence exists, every changed bullet carries a marker back to the
+claim it came from, and the audit panel's concern reads *"No direct dbt evidence
+— flagged as a gap rather than implied through adjacent PySpark experience."*
+Implying it would have been the easy score.
+
+<details>
+<summary>Two more views</summary>
+
+![Discover Jobs: postings from nine boards, each scored against recorded evidence](docs/screenshots/discover-jobs.png)
+
+![Applications board: qualified through offer, with the next action on each card](docs/screenshots/applications-board.png)
+
+</details>
+
+> Screenshots are rendered from the mock data layer (`NEXT_PUBLIC_USE_MOCK_DATA=true`),
+> not from a live database. The companies shown are invented.
 
 ## Three rules this is built around
 
