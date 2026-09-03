@@ -39,6 +39,13 @@ file, never `CLAUDE.md`.**
 3. **Report honestly what the backend actually did.** If search ranked a subset, say so —
    the jobs page prints "N of M scored" for exactly this reason.
 4. **Never add a `Co-Authored-By: Claude` trailer to commits.**
+5. **PII never enters git, and this repo is public.** `careeros-web` and `careeros-api`
+   are public on GitHub; only `careeros`, which holds the candidate's data, is private.
+   Assume anything committed here is readable by a recruiter who finds the portfolio and
+   clicks through. Grades, employment-gap reasoning, salary and contact details stay out
+   of code, comments, fixtures and commit messages alike, and a commit message is as
+   public as the diff. Fixtures and stories must use invented people, never the
+   candidate's own record.
 
 ## How to run it
 
